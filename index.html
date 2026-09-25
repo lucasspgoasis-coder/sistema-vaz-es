@@ -47,8 +47,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <!-- html2canvas para capturar a tela inteira (KPIs + Gráfico) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- html-to-image para capturar a tela inteira com altíssima precisão (substitui o html2canvas e evita cortes) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -57,11 +57,31 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Classe para esconder a barra de rolagem temporariamente durante a exportação */
+        /* Classe para esconder elementos marcados durante a exportação */
         .hide-scroll-for-export { overflow: visible !important; }
+        .export-mode-active { 
+            background-color: #ffffff !important; 
+            padding: 28px !important; 
+            border-radius: 0px !important; 
+            box-shadow: none !important;
+        }
+        .export-mode-active #exportReportHeader,
+        .export-mode-active #exportPocoSummary {
+            display: block !important;
+        }
+        .export-mode-active .no-export { display: none !important; }
     </style>
 </head>
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Modal de Carregamento em Tela Cheia (Fora da área exportável para não sair no relatório) -->
+    <div id="exportLoadingOverlay" data-html2canvas-ignore="true" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center text-emerald-600 font-medium max-w-sm text-center mx-4 border border-slate-100">
+            <i class="fa-solid fa-spinner fa-spin text-4xl mb-3 text-emerald-600"></i>
+            <span class="text-base font-semibold text-slate-800">Gerando Relatório...</span>
+            <span class="text-xs text-slate-500 mt-1">Processando dados e imagem em alta resolução.</span>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white shadow-lg sticky top-0 z-30">
@@ -194,8 +214,29 @@
         </section>
 
         <!-- ÁREA EXPORTÁVEL (KPIs + Gráfico) -->
-        <div id="exportableArea" class="space-y-6 bg-slate-50">
+        <div id="exportableArea" class="space-y-5 bg-slate-50 p-2 sm:p-0 rounded-2xl">
             
+            <!-- Cabeçalho do Relatório Exportável (Exibido apenas na foto/PDF) -->
+            <div id="exportReportHeader" class="hidden text-slate-800 border-b-2 border-emerald-600/40 pb-3 mb-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-emerald-600 rounded-lg text-white">
+                            <i class="fa-solid fa-droplet text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                                FAZENDA OASIS &bull; RELATÓRIO DE CONTROLE DE VAZÃO
+                            </h1>
+                            <p id="exportReportSubtitle" class="text-xs text-slate-500 font-medium">Período de Análise: -- até --</p>
+                        </div>
+                    </div>
+                    <div class="text-right text-xs text-slate-500">
+                        <p class="font-semibold text-slate-800">SISTEMA DE MONITORAMENTO DE POÇOS</p>
+                        <p class="mt-0.5">Emissão: <span id="exportReportDate" class="font-medium text-slate-700">--</span></p>
+                    </div>
+                </div>
+            </div>
+
             <!-- KPI Cards -->
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
@@ -246,15 +287,7 @@
             <!-- Chart Section -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4 relative">
                 
-                <!-- Overlay de Carregamento para Exportação -->
-                <div id="exportLoadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
-                    <div class="flex flex-col items-center text-emerald-600 font-medium">
-                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i>
-                        <span>Gerando Relatório Completo...</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-3">
                     <div>
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-emerald-600"></i>
@@ -265,8 +298,8 @@
                         </p>
                     </div>
 
-                    <!-- Configurações e Exportação -->
-                    <div class="flex flex-wrap items-center gap-2" data-html2canvas-ignore="true">
+                    <!-- Configurações e Exportação (Ocultos no relatório exportado via classe no-export) -->
+                    <div class="flex flex-wrap items-center gap-2 no-export" data-html2canvas-ignore="true">
                         <button onclick="exportDashboard('jpeg')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-image"></i> Baixar Relatório JPG
                         </button>
@@ -290,21 +323,33 @@
                     </div>
                 </div>
 
-                <!-- Container do Gráfico (com scroll nativo mantido, mas ajustável na exportação) -->
-                <div class="relative w-full border border-slate-100 rounded-xl bg-slate-50 overflow-hidden">
+                <!-- Container do Gráfico (Ajustado para altura ideal e margins sem cortes) -->
+                <div class="relative w-full border border-slate-100 rounded-xl bg-white overflow-hidden">
                     <div id="chartScrollContainer" class="overflow-x-auto w-full custom-scrollbar">
-                        <div id="canvasWrapper" class="relative min-h-[500px] h-[600px] w-full" style="min-width: 100%;">
+                        <!-- Canvas flexível -->
+                        <div id="canvasWrapper" class="relative min-h-[360px] h-[390px] w-full pt-2">
                             <canvas id="vazaoChart" class="w-full h-full"></canvas>
                         </div>
                     </div>
                 </div>
                 
-                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
-                    <span class="flex items-center gap-1">
+                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-1 gap-2">
+                    <span class="flex items-center gap-1 no-export">
                         <i class="fa-solid fa-circle-info text-emerald-600"></i>
                         Dica: O gráfico se ajusta automaticamente. Role horizontalmente se houver muitos dados.
                     </span>
-                    <span id="chartPointsCount" class="font-medium text-slate-600">0 pontos no gráfico</span>
+                    <span id="chartPointsCount" class="font-medium text-slate-600 ml-auto">0 pontos no gráfico</span>
+                </div>
+            </section>
+
+            <!-- Resumo Consolidado por Poço (Aparece no Relatório para preencher a folha com informações valiosas) -->
+            <section id="exportPocoSummary" class="hidden bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <i class="fa-solid fa-chart-pie text-emerald-600"></i>
+                    Resumo Consolidado por Poço no Período
+                </h3>
+                <div id="exportPocoCardsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <!-- Gerado dinamicamente via JS em updateKPIs -->
                 </div>
             </section>
         </div>
@@ -340,18 +385,18 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
-                </table>
-            </div>
-
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 pt-2">
-                <span id="tableInfo">Exibindo 0 registros</span>
-                <div class="flex items-center space-x-2">
-                    <button onclick="changePage(-1)" id="btnPrevPage" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-slate-200 transition">Anterior</button>
-                    <span id="pageNumber" class="font-semibold text-slate-700">1 de 1</span>
-                    <button onclick="changePage(1)" id="btnNextPage" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-slate-200 transition">Próximo</button>
+            <!-- Resumo Consolidado por Poço (Campos Gerais do Relatório e Dashboard) -->
+            <section id="exportPocoSummary" class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                    <i class="fa-solid fa-chart-pie text-emerald-600"></i>
+                    Resumo Consolidado por Poço no Período
+                </h3>
+                <div id="exportPocoCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Gerado dinamicamente via JS em updateKPIs -->
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
+        <!-- FIM DA ÁREA EXPORTÁVEL -->
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-4 mt-8">
@@ -598,7 +643,8 @@
                 return true;
             });
 
-            updateKPIs(); updateChart(); renderTable();
+            updateKPIs(); 
+            updateChart();
         }
 
         function updateKPIs() {
@@ -607,10 +653,12 @@
             const avg = count > 0 ? total / count : 0;
             let maxItem = { vazao: 0, poco: '-', dateDisplay: '-' };
             const volByPoco = {};
+            const countByPoco = {};
 
             filteredData.forEach(item => {
                 if (item.vazao > maxItem.vazao) maxItem = item;
                 volByPoco[item.poco] = (volByPoco[item.poco] || 0) + item.vazao;
+                countByPoco[item.poco] = (countByPoco[item.poco] || 0) + 1;
             });
 
             let topName = '-', topVol = 0;
@@ -623,6 +671,42 @@
             document.getElementById('kpiMaxPoco').innerText = maxItem.poco !== '-' ? `${maxItem.poco} (${maxItem.dateDisplay})` : 'Nenhum dado';
             document.getElementById('kpiTopPoco').innerText = topName;
             document.getElementById('kpiTopPocoVal').innerText = topVol > 0 ? topVol.toLocaleString('pt-BR') + ' L Total' : '0 L Total';
+
+            // Atualizar os cards de resumo por poço (Campos Gerais)
+            const summaryGrid = document.getElementById('exportPocoCardsGrid');
+            if (summaryGrid) {
+                summaryGrid.innerHTML = '';
+                const sortedPocos = Object.keys(volByPoco).sort((a,b) => volByPoco[b] - volByPoco[a]);
+                if (sortedPocos.length === 0) {
+                    summaryGrid.innerHTML = '<span class="text-xs text-slate-400">Nenhum poço selecionado.</span>';
+                } else {
+                    sortedPocos.forEach(pName => {
+                        const pVol = volByPoco[pName];
+                        const pCnt = countByPoco[pName] || 1;
+                        const pAvg = Math.round(pVol / pCnt);
+                        const sharePct = total > 0 ? ((pVol / total) * 100).toFixed(1) : '0';
+                        summaryGrid.innerHTML += `
+                            <div class="bg-slate-50 border border-slate-200/70 p-3 rounded-xl shadow-xs">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs font-bold text-slate-800 truncate">${pName}</p>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">${sharePct}%</span>
+                                </div>
+                                <div class="mt-2 flex items-baseline justify-between text-xs">
+                                    <span class="text-slate-500">Vol. Total:</span>
+                                    <span class="font-bold text-emerald-700">${pVol.toLocaleString('pt-BR')} L</span>
+                                </div>
+                                <div class="flex items-baseline justify-between text-[11px] text-slate-500 mt-1">
+                                    <span>Vazão Média:</span>
+                                    <span class="font-semibold text-slate-700">${pAvg.toLocaleString('pt-BR')} L/H</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
+                                    <div class="bg-emerald-600 h-1.5 rounded-full" style="width: ${sharePct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            }
         }
 
         function updateChart() {
@@ -652,55 +736,49 @@
 
                 return {
                     label: pocoName, data: dataPts,
-                    borderColor: color, backgroundColor: color,
+                    borderColor: color, 
+                    backgroundColor: color,
                     borderWidth: 2.5,
                     tension: isSmoothCurve ? 0.35 : 0,
-                    pointRadius: 4, // Aumentado para garantir visibilidade de pontos solitários
-                    pointHoverRadius: 7,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: color,
+                    
+                    pointRadius: 4.5, 
+                    pointHoverRadius: 6.5,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    spanGaps: true, // IMPORTANTE: Conecta linhas com dados faltantes (null)
-                    clip: false, // Previne que pontos na margem sejam cortados
+                    spanGaps: true, 
+                    clip: false, // Evita corte nos pontos e rótulos das bordas superiores e laterais
                     
                     datalabels: {
                         display: function(context) {
                             if (labelMode === 'none') return false;
                             const val = context.dataset.data[context.dataIndex];
                             if (val === null || val === undefined) return false;
-                            // Se for modo extremos, força mostrar
                             if (labelMode === 'extremes') return val === maxVal || val === minVal;
-                            
-                            // 'auto' aciona o algoritmo nativo do plugin para ocultar etiquetas que se sobrepõem
                             return 'auto';
                         },
-                        // clamp: true impede que a etiqueta saia para fora da tela (corrige o corte)
-                        clamp: true,
+                        clamp: true, // Garante que os números permaneçam dentro da área visível do gráfico
                         formatter: v => v !== null ? v.toLocaleString('pt-BR') : '',
                         
-                        // Lógica limpa para o posicionamento
-                        align: function(context) {
-                            const val = context.dataset.data[context.dataIndex];
-                            if (val === maxVal) return 'top';
-                            if (val === minVal) return 'bottom';
-                            return (context.dataIndex + context.datasetIndex) % 2 === 0 ? 'top' : 'bottom';
-                        },
-                        offset: 6,
+                        anchor: 'end',
+                        align: 'top', 
+                        offset: 4,
                         
                         font: { family: 'Inter', size: 9, weight: 'bold' },
-                        backgroundColor: 'rgba(255, 255, 255, 0.90)',
-                        borderColor: color, borderWidth: 1, borderRadius: 4,
-                        padding: { top: 3, bottom: 3, left: 5, right: 5 },
-                        color: '#1e293b'
+                        backgroundColor: color,
+                        color: '#ffffff',
+                        borderColor: 'rgba(255,255,255,0.9)', 
+                        borderWidth: 1, 
+                        borderRadius: 4,
+                        padding: { top: 2, bottom: 2, left: 5, right: 5 }
                     }
                 };
             });
 
             if (chartInstance) chartInstance.destroy();
 
-            // Ajuste dinâmico de largura para espalhar os dados
             const canvasWrapper = document.getElementById('canvasWrapper');
-            const minW = Math.max(100, uniqueDates.length * 100); 
+            const minW = Math.max(100, uniqueDates.length * 75); 
             canvasWrapper.style.minWidth = `max(100%, ${minW}px)`;
 
             document.getElementById('chartPointsCount').innerText = `${uniqueDates.length} datas | ${activePocos.length} poços`;
@@ -709,17 +787,25 @@
                 type: 'line',
                 data: { labels: uniqueDates, datasets: datasets },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    // Padding aumentado para dar mais respiro no topo e na direita para as etiquetas altas e longas
-                    layout: { padding: { top: 50, right: 50, bottom: 20, left: 20 } },
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    // Margens internas ampliadas para garantir zero cortes de rótulos topo/lados
+                    layout: { padding: { top: 38, right: 35, bottom: 15, left: 15 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '600' } } },
-                        tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleFont: { family: 'Inter', size: 12 }, padding: 12, cornerRadius: 8 }
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 11, weight: '600' } } },
+                        tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleFont: { family: 'Inter', size: 12 }, padding: 10, cornerRadius: 8 }
                     },
                     scales: {
-                        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, color: '#64748b' } },
-                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, callback: v => v.toLocaleString('pt-BR') + ' L/H' } }
+                        x: { 
+                            grid: { color: '#f1f5f9' }, 
+                            ticks: { font: { size: 10 }, color: '#64748b', maxRotation: 45 },
+                        },
+                        y: { 
+                            grid: { color: '#f1f5f9' }, 
+                            grace: '22%',
+                            ticks: { font: { size: 10 }, callback: v => v.toLocaleString('pt-BR') + ' L/H' } 
+                        }
                     }
                 }
             });
@@ -785,67 +871,108 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        // --- EXPORTAÇÃO AVANÇADA (html2canvas + jsPDF) ---
-
         async function prepareForExport() {
             document.getElementById('exportLoadingOverlay').classList.remove('hidden');
             
+            const exportArea = document.getElementById('exportableArea');
             const scrollContainer = document.getElementById('chartScrollContainer');
             const wrapper = document.getElementById('canvasWrapper');
+            const chartBox = scrollContainer.parentElement; 
             
-            // Salva os estilos originais
-            const originalOverflow = scrollContainer.style.overflowX;
-            const originalWidth = wrapper.style.minWidth;
+            // Atualiza cabeçalho de exportação
+            const startVal = document.getElementById('startDate').value;
+            const endVal = document.getElementById('endDate').value;
+            const fmtDate = (s) => s ? s.split('-').reverse().join('/') : 'Início';
+            document.getElementById('exportReportSubtitle').innerText = `Período: ${fmtDate(startVal)} até ${fmtDate(endVal)} | Total de Poços Ativos: ${selectedPocos.size}`;
+            document.getElementById('exportReportDate').innerText = new Date().toLocaleString('pt-BR');
 
-            // Força o container a mostrar tudo (remove o scroll)
+            const state = {
+                originalOverflow: scrollContainer.style.overflowX,
+                originalWidth: exportArea.style.width,
+                originalMaxWidth: exportArea.style.maxWidth,
+                originalWrapperWidth: wrapper.style.width,
+                originalWrapperMinWidth: wrapper.style.minWidth,
+                originalBoxOverflow: chartBox.style.overflow,
+                originalBoxWidth: chartBox.style.width,
+                chartBoxClass: chartBox.className
+            };
+
+            // Ativa modo de exportação com proporção perfeita para A4 Paisagem (1200px largura padrão)
+            exportArea.classList.add('export-mode-active');
+            exportArea.style.width = '1200px';
+            exportArea.style.maxWidth = '1200px';
+            
             scrollContainer.style.overflowX = 'visible';
+            scrollContainer.style.width = '100%';
             scrollContainer.classList.add('hide-scroll-for-export');
-            
-            // Para a exportação ficar bonita na página, limitamos a largura do canvas ao tamanho da tela visível
-            // (Isso evita que o PDF/JPG fique espremido com fontes minúsculas)
-            wrapper.style.minWidth = '100%'; 
-            
-            // Pede ao ChartJS para re-renderizar no novo tamanho
-            chartInstance.resize();
-            
-            // Pequena pausa para garantir a renderização no DOM
-            await new Promise(r => setTimeout(r, 600));
 
-            return { scrollContainer, wrapper, originalOverflow, originalWidth };
+            chartBox.classList.remove('overflow-hidden');
+            chartBox.style.overflow = 'visible';
+            chartBox.style.width = '100%';
+
+            wrapper.style.minWidth = '100%';
+            wrapper.style.width = '100%';
+            
+            if (chartInstance) {
+                chartInstance.resize();
+                chartInstance.update('none');
+            }
+            
+            await new Promise(r => setTimeout(r, 450));
+
+            return { exportArea, scrollContainer, chartBox, wrapper, ...state };
         }
 
         async function restoreAfterExport(state) {
             state.scrollContainer.style.overflowX = state.originalOverflow;
+            state.scrollContainer.style.width = '';
             state.scrollContainer.classList.remove('hide-scroll-for-export');
-            state.wrapper.style.minWidth = state.originalWidth;
-            chartInstance.resize();
+            
+            state.chartBox.className = state.chartBoxClass;
+            state.chartBox.style.overflow = state.originalBoxOverflow;
+            state.chartBox.style.width = state.originalBoxWidth;
+
+            state.wrapper.style.width = state.originalWrapperWidth;
+            state.wrapper.style.minWidth = state.originalWrapperMinWidth;
+
+            state.exportArea.classList.remove('export-mode-active');
+            state.exportArea.style.width = state.originalWidth;
+            state.exportArea.style.maxWidth = state.originalMaxWidth;
+            
+            updateChart();
             document.getElementById('exportLoadingOverlay').classList.add('hidden');
         }
 
         async function exportDashboard(format) {
-            if (typeof html2canvas === 'undefined') {
-                alert("A biblioteca de exportação está carregando. Tente novamente em alguns segundos.");
+            if (typeof htmlToImage === 'undefined') {
+                alert("A biblioteca html-to-image ainda está carregando. Aguarde alguns segundos e tente novamente.");
                 return;
             }
 
-            const exportArea = document.getElementById('exportableArea');
-            const originalState = await prepareForExport();
-
+            let state = null;
             try {
-                // Captura toda a div 'exportableArea' (KPIs + Gráfico)
-                const canvas = await html2canvas(exportArea, {
-                    scale: 2, // Alta qualidade
-                    backgroundColor: '#f8fafc',
-                    useCORS: true,
-                    logging: false
+                state = await prepareForExport();
+                const exportArea = state.exportArea;
+
+                // Captura em altíssima definição (pixelRatio: 2.5)
+                const canvas = await htmlToImage.toCanvas(exportArea, {
+                    quality: 0.98,
+                    pixelRatio: 2.5,
+                    backgroundColor: '#ffffff',
+                    cacheBust: true,
+                    filter: (node) => {
+                        if (node.classList && node.classList.contains('no-export')) return false;
+                        if (node.dataset && node.dataset.html2canvasIgnore === 'true') return false;
+                        return true;
+                    }
                 });
 
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 const dateStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
 
                 if (format === 'jpeg') {
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const link = document.createElement('a');
-                    link.download = `Relatorio_Geral_Vazao_${dateStr}.jpg`;
+                    link.download = `Relatorio_Vazao_Fazenda_Oasis_${dateStr}.jpg`;
                     link.href = imgData;
                     link.click();
                 } 
@@ -853,45 +980,48 @@
                     if (!window.jspdf) throw new Error("jsPDF não carregado");
                     const { jsPDF } = window.jspdf;
                     
-                    // PDF em Paisagem (Landscape), perfeito para dashboards
-                    const pdf = new jsPDF('landscape', 'mm', 'a4');
+                    // Margens ajustadas para 8mm nas 4 bordas para ocupação perfeita da folha A4 Paisagem
+                    const margin = 8; 
+                    const pdfWidth = 297; // A4 Paisagem em mm
+                    const pdfHeight = 210;
                     
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const margin = 10;
-                    
-                    // Cálculo preciso para usar toda a margem sem distorcer
-                    const maxDrawWidth = pdfWidth - (margin * 2);
-                    const imgProps = pdf.getImageProperties(imgData);
-                    const imgRatio = imgProps.width / imgProps.height;
-                    
-                    // A imagem vai ocupar 100% da largura permitida pelas margens
-                    const drawWidth = maxDrawWidth;
-                    const drawHeight = maxDrawWidth / imgRatio;
+                    const usableWidth = pdfWidth - (margin * 2); // 281mm
+                    const usableHeight = pdfHeight - (margin * 2); // 194mm
 
-                    // Textos e Cabeçalho do PDF
-                    pdf.setFontSize(16);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text("Relatório Geral de Vazão - Fazenda Oasis", margin, margin + 5);
-                    
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(100, 116, 139);
-                    pdf.text(`Documento gerado em: ${new Date().toLocaleString('pt-BR')} | Filtros aplicados no sistema`, margin, margin + 11);
+                    const imgRatio = canvas.width / canvas.height;
 
-                    // Adiciona a imagem capturada logo abaixo do título
-                    pdf.addImage(imgData, 'JPEG', margin, margin + 16, drawWidth, drawHeight);
+                    // Ajusta para preencher a largura útil da página
+                    let renderWidth = usableWidth;
+                    let renderHeight = renderWidth / imgRatio;
+
+                    // Se exceder a altura útil da folha, ajusta proporcionalmente
+                    if (renderHeight > usableHeight) {
+                        renderHeight = usableHeight;
+                        renderWidth = renderHeight * imgRatio;
+                    }
+
+                    // Centralização perfeita na página
+                    const xOffset = margin + (usableWidth - renderWidth) / 2;
+                    const yOffset = margin + (usableHeight - renderHeight) / 2;
+
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    pdf.addImage(imgData, 'JPEG', xOffset, yOffset, renderWidth, renderHeight);
                     
-                    pdf.save(`Relatorio_Geral_Vazao_${dateStr}.pdf`);
+                    pdf.save(`Relatorio_Vazao_Fazenda_Oasis_${dateStr}.pdf`);
                 }
             } catch (err) {
-                console.error("Erro ao exportar:", err);
-                alert("Houve um problema ao gerar o arquivo. Tente novamente.");
+                console.error("Erro ao exportar com html-to-image:", err);
+                alert("Houve um problema ao gerar o relatório. Tente novamente.");
             } finally {
-                // Restaura o layout com barra de rolagem
-                await restoreAfterExport(originalState);
+                if (state) await restoreAfterExport(state);
             }
         }
     </script>
 </body>
 </html>
-```
