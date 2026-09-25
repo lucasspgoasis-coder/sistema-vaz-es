@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Vazão - Fazenda Oasis</title>
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -33,22 +32,17 @@
         }
     </script>
 
-    <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Bibliotecas Externas -->
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- html-to-image para capturar a tela inteira com altíssima precisão (substitui o html2canvas e evita cortes) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -56,34 +50,11 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        /* Classe para esconder elementos marcados durante a exportação */
         .hide-scroll-for-export { overflow: visible !important; }
-        .export-mode-active { 
-            background-color: #ffffff !important; 
-            padding: 28px !important; 
-            border-radius: 0px !important; 
-            box-shadow: none !important;
-        }
-        .export-mode-active #exportReportHeader,
-        .export-mode-active #exportPocoSummary {
-            display: block !important;
-        }
-        .export-mode-active .no-export { display: none !important; }
     </style>
 </head>
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
 
-    <!-- Modal de Carregamento em Tela Cheia (Fora da área exportável para não sair no relatório) -->
-    <div id="exportLoadingOverlay" data-html2canvas-ignore="true" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center text-emerald-600 font-medium max-w-sm text-center mx-4 border border-slate-100">
-            <i class="fa-solid fa-spinner fa-spin text-4xl mb-3 text-emerald-600"></i>
-            <span class="text-base font-semibold text-slate-800">Gerando Relatório...</span>
-            <span class="text-xs text-slate-500 mt-1">Processando dados e imagem em alta resolução.</span>
-        </div>
-    </div>
-
-    <!-- Header -->
     <header class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white shadow-lg sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -94,7 +65,7 @@
                     <div>
                         <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                             Controle de Vazão
-                            <span class="text-xs font-normal px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">L/H</span>
+                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">L/H</span>
                         </h1>
                         <p class="text-emerald-200/80 text-sm font-medium flex items-center gap-1.5">
                             <i class="fa-solid fa-wheat-awn text-amber-400 text-xs"></i>
@@ -112,7 +83,7 @@
                         <span id="statusText">Conectando...</span>
                     </div>
 
-                    <button onclick="reloadData()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition shadow-sm hover:shadow active:scale-95">
+                    <button onclick="reloadData()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition shadow-sm active:scale-95">
                         <i id="refreshIcon" class="fa-solid fa-rotate-right"></i>
                         <span>Atualizar Dados</span>
                     </button>
@@ -135,10 +106,15 @@
                     <i class="fa-solid fa-filter text-emerald-600"></i>
                     Filtros de Análise
                 </h2>
-                <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition flex items-center gap-1">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                    Limpar Filtros
-                </button>
+                <div class="flex items-center gap-3">
+                    <button onclick="setQuickDateRange('all')" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition">Tudo</button>
+                    <span class="text-slate-300">|</span>
+                    <button onclick="setQuickDateRange('30days')" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition">Últimos 30 Dias</button>
+                    <span class="text-slate-300">|</span>
+                    <button onclick="resetFilters()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Limpar
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -199,7 +175,7 @@
                 <div class="flex items-center justify-between">
                     <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                         <i class="fa-solid fa-bore-hole text-emerald-600"></i>
-                        Filtrar Poços:
+                        Seleção de Poços (<span id="selectedPocosCount">0</span> ativos):
                     </label>
                     <div class="flex items-center space-x-3 text-xs">
                         <button onclick="selectAllPocos(true)" class="text-emerald-600 hover:underline font-medium">Selecionar Todos</button>
@@ -207,36 +183,14 @@
                         <button onclick="selectAllPocos(false)" class="text-slate-500 hover:underline">Desmarcar Todos</button>
                     </div>
                 </div>
-                <div id="pocoPillsContainer" class="flex flex-wrap gap-2 max-h-28 overflow-y-auto custom-scrollbar p-1">
-                    <span class="text-xs text-slate-400 animate-pulse">Carregando poços...</span>
+                <div id="pocoPillsContainer" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto custom-scrollbar p-1 bg-slate-50/50 rounded-xl border border-slate-100">
+                    <span class="text-xs text-slate-400 animate-pulse p-2">Carregando poços da planilha...</span>
                 </div>
             </div>
         </section>
 
-        <!-- ÁREA EXPORTÁVEL (KPIs + Gráfico) -->
-        <div id="exportableArea" class="space-y-5 bg-slate-50 p-2 sm:p-0 rounded-2xl">
+        <div id="exportableArea" class="space-y-6 bg-slate-50">
             
-            <!-- Cabeçalho do Relatório Exportável (Exibido apenas na foto/PDF) -->
-            <div id="exportReportHeader" class="hidden text-slate-800 border-b-2 border-emerald-600/40 pb-3 mb-2">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-emerald-600 rounded-lg text-white">
-                            <i class="fa-solid fa-droplet text-xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                                FAZENDA OASIS &bull; RELATÓRIO DE CONTROLE DE VAZÃO
-                            </h1>
-                            <p id="exportReportSubtitle" class="text-xs text-slate-500 font-medium">Período de Análise: -- até --</p>
-                        </div>
-                    </div>
-                    <div class="text-right text-xs text-slate-500">
-                        <p class="font-semibold text-slate-800">SISTEMA DE MONITORAMENTO DE POÇOS</p>
-                        <p class="mt-0.5">Emissão: <span id="exportReportDate" class="font-medium text-slate-700">--</span></p>
-                    </div>
-                </div>
-            </div>
-
             <!-- KPI Cards -->
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
@@ -274,7 +228,7 @@
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
                     <div class="space-y-1 z-10">
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Poço de Maior Volume</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Poço Maior Volume</p>
                         <p id="kpiTopPoco" class="text-xl font-bold text-slate-800 truncate max-w-[160px]">-</p>
                         <p id="kpiTopPocoVal" class="text-xs text-slate-500">0 L Total</p>
                     </div>
@@ -284,132 +238,89 @@
                 </div>
             </section>
 
-            <!-- Chart Section -->
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4 relative">
                 
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                <!-- Overlay de Carregamento para Exportação -->
+                <div id="exportLoadingOverlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
+                    <div class="flex flex-col items-center text-emerald-600 font-medium">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i>
+                        <span>Gerando Relatório Completo...</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                     <div>
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-emerald-600"></i>
-                            Evolução Temporal da Vazão (L/H)
+                            Evolução Temporal da Vazão (L/H) por Poço
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Séries: <span class="font-semibold text-slate-700">Poços selecionados</span>
+                            Mostrando todas as linhas dos poços selecionados ao longo do tempo.
                         </p>
                     </div>
 
-                    <!-- Configurações e Exportação (Ocultos no relatório exportado via classe no-export) -->
-                    <div class="flex flex-wrap items-center gap-2 no-export" data-html2canvas-ignore="true">
-                        <button onclick="exportDashboard('jpeg')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-image"></i> Baixar Relatório JPG
-                        </button>
-                        <button onclick="exportDashboard('pdf')" class="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-file-pdf"></i> Baixar Relatório PDF
-                        </button>
-
+                    <!-- Configurações do Gráfico e Exportação -->
+                    <div class="flex flex-wrap items-center gap-2" data-html2canvas-ignore="true">
+                        
+                        <!-- Seleção de Rótulos -->
                         <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl text-xs">
-                            <span class="text-slate-500 pl-2 font-medium">Etiquetas:</span>
+                            <span class="text-slate-500 pl-2 font-medium">Valores:</span>
                             <select id="labelModeSelect" onchange="updateChart()" class="bg-white font-medium text-slate-700 rounded-lg px-2 py-1 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="all" selected>Exibir Todas</option>
-                                <option value="extremes">Apenas Máx / Mín</option>
-                                <option value="none">Ocultar Etiquetas</option>
+                                <option value="all" selected>Exibir Todos</option>
+                                <option value="extremes">Máx / Mín</option>
+                                <option value="none">Ocultar</option>
                             </select>
                         </div>
 
-                        <button onclick="toggleTension()" id="tensionBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-1.5" title="Alternar curvas">
+                        <!-- Curvatura -->
+                        <button onclick="toggleTension()" id="tensionBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-1.5">
                             <i class="fa-solid fa-bezier-curve text-slate-500"></i>
-                            <span id="tensionText">Linhas Suaves</span>
+                            <span id="tensionText">Suave</span>
+                        </button>
+
+                        <!-- Botões de Relatório -->
+                        <button onclick="exportDashboard('jpeg')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-image text-emerald-400"></i> JPG
+                        </button>
+                        <button onclick="exportDashboard('pdf')" class="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
                         </button>
                     </div>
                 </div>
 
-                <!-- Container do Gráfico (Ajustado para altura ideal e margins sem cortes) -->
-                <div class="relative w-full border border-slate-100 rounded-xl bg-white overflow-hidden">
-                    <div id="chartScrollContainer" class="overflow-x-auto w-full custom-scrollbar">
-                        <!-- Canvas flexível -->
-                        <div id="canvasWrapper" class="relative min-h-[360px] h-[390px] w-full pt-2">
+                <!-- Container do Gráfico -->
+                <div class="relative w-full border border-slate-100 rounded-2xl bg-slate-50/50 p-2 overflow-hidden">
+                    <div id="chartScrollContainer" class="w-full">
+                        <div id="canvasWrapper" class="relative min-h-[480px] h-[550px] w-full transition-all duration-300">
                             <canvas id="vazaoChart" class="w-full h-full"></canvas>
                         </div>
                     </div>
                 </div>
                 
-                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-1 gap-2">
-                    <span class="flex items-center gap-1 no-export">
+                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
+                    <span class="flex items-center gap-1.5">
                         <i class="fa-solid fa-circle-info text-emerald-600"></i>
-                        Dica: O gráfico se ajusta automaticamente. Role horizontalmente se houver muitos dados.
+                        <span>Clique em um poço na legenda acima do gráfico para ocultar/exibir sua linha individualmente.</span>
                     </span>
-                    <span id="chartPointsCount" class="font-medium text-slate-600 ml-auto">0 pontos no gráfico</span>
-                </div>
-            </section>
-
-            <!-- Resumo Consolidado por Poço (Aparece no Relatório para preencher a folha com informações valiosas) -->
-            <section id="exportPocoSummary" class="hidden bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                    <i class="fa-solid fa-chart-pie text-emerald-600"></i>
-                    Resumo Consolidado por Poço no Período
-                </h3>
-                <div id="exportPocoCardsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <!-- Gerado dinamicamente via JS em updateKPIs -->
+                    <span id="chartPointsCount" class="font-semibold text-slate-700">0 medições no gráfico</span>
                 </div>
             </section>
         </div>
-        <!-- FIM DA ÁREA EXPORTÁVEL -->
-
-        <!-- Data Table Section -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                <div>
-                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-table-list text-emerald-600"></i>
-                        Tabela de Registros
-                    </h3>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="relative">
-                        <input type="text" id="searchInput" onkeyup="filterTableSearch()" placeholder="Pesquisar..." 
-                               class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 w-48 transition">
-                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200">
-                <table class="w-full text-left text-xs text-slate-700">
-                    <thead class="bg-slate-50 uppercase tracking-wider font-semibold text-slate-600 border-b border-slate-200">
-                        <tr>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('date')">Data <i class="fa-solid fa-sort ml-1"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('ano')">Ano <i class="fa-solid fa-sort ml-1"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('semana')">Semana <i class="fa-solid fa-sort ml-1"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('poco')">Poço <i class="fa-solid fa-sort ml-1"></i></th>
-                            <th class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('vazao')">Vazão (L/H) <i class="fa-solid fa-sort ml-1"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
-            <!-- Resumo Consolidado por Poço (Campos Gerais do Relatório e Dashboard) -->
-            <section id="exportPocoSummary" class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                    <i class="fa-solid fa-chart-pie text-emerald-600"></i>
-                    Resumo Consolidado por Poço no Período
-                </h3>
-                <div id="exportPocoCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <!-- Gerado dinamicamente via JS em updateKPIs -->
-                </div>
-            </section>
-        </div>
-        <!-- FIM DA ÁREA EXPORTÁVEL -->
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-4 mt-8">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <span>&copy; 2026 Fazenda Oasis</span>
+            <span>&copy; 2026 Fazenda Oasis - Controle do Fluxo de Poços</span>
             <span class="flex items-center gap-1 text-slate-400">
-                <i class="fa-solid fa-database text-emerald-500"></i> Google Sheets Integrado
+                <i class="fa-solid fa-database text-emerald-500"></i> Planilha Conectada
             </span>
         </div>
     </footer>
 
+    <!-- Toast UI element -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
     <script>
-        // Constants & Config
         const PUBLISHED_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pub?output=csv';
         const PUBLISHED_SHEET_HTML_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pubhtml';
 
@@ -418,18 +329,33 @@
         let selectedPocos = new Set();
         let chartInstance = null;
         let isSmoothCurve = true;
-        let currentPage = 1;
-        const itemsPerPage = 15;
-        let currentSort = { column: 'date', direction: 'asc' };
 
+        // Paleta vibrante expandida para 24 poços distintos
         const WELL_COLORS = [
             '#059669', '#0284c7', '#7c3aed', '#d97706', '#dc2626', 
             '#0891b2', '#4f46e5', '#ca8a04', '#be185d', '#15803d',
-            '#0369a1', '#6d28d9', '#b45309', '#b91c1c', '#0f766e'
+            '#0369a1', '#9333ea', '#c2410c', '#e11d48', '#0d9488',
+            '#2563eb', '#65a30d', '#a855f7', '#ea580c', '#e11d48',
+            '#10b981', '#3b82f6', '#6366f1', '#ec4899'
         ];
 
         function getWellColor(index) {
             return WELL_COLORS[index % WELL_COLORS.length];
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgColor = type === 'error' ? 'bg-rose-600 text-white' : type === 'success' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-100';
+            toast.className = `${bgColor} px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 pointer-events-auto transition duration-300 opacity-0 transform translate-y-2`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-2'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
 
         window.onload = function() {
@@ -453,7 +379,7 @@
                 }
             } catch (err) {
                 console.warn('Erro remoto:', err);
-                useFallbackMockData('Modo Demonstração (Sem conexão)');
+                useFallbackMockData('Modo de Demonstração');
             } finally {
                 document.getElementById('refreshIcon')?.classList.remove('fa-spin');
             }
@@ -464,9 +390,9 @@
                 header: true, skipEmptyLines: true, dynamicTyping: false,
                 complete: function(results) {
                     if (results.data && results.data.length > 0) processParsedRows(results.data);
-                    else useFallbackMockData('Planilha vazia.');
+                    else useFallbackMockData('Planilha sem dados.');
                 },
-                error: function(e) { useFallbackMockData('Erro no CSV.'); }
+                error: function(e) { useFallbackMockData('Erro no formato CSV.'); }
             });
         }
 
@@ -488,40 +414,103 @@
         }
 
         function processParsedRows(dataRows) {
+            if (!dataRows || dataRows.length === 0) {
+                useFallbackMockData('Sem registros.');
+                return;
+            }
+
             rawData = [];
-            dataRows.forEach((row, index) => {
-                const dateKey = Object.keys(row).find(k => /data|date/i.test(k));
-                const pocoKey = Object.keys(row).find(k => /poço|poco|well/i.test(k));
-                const vazaoKey = Object.keys(row).find(k => /vaz[aã]o|l\/h|flow/i.test(k));
+            const firstRow = dataRows[0];
+            const keys = Object.keys(firstRow);
 
-                let rawDate = row[dateKey];
-                let rawPoco = row[pocoKey];
-                let rawVazao = row[vazaoKey];
+            const dateKey = keys.find(k => /data|date|dia|fecha|timestamp/i.test(k.trim())) || keys[0];
 
-                if (!rawDate || !rawPoco || rawVazao === undefined || rawVazao === '') return;
+            const explicitPocoKey = keys.find(k => /^po[çc]o$|^well$|^ponto$|^local$/i.test(k.trim()) || (/po[çc]o|well/i.test(k) && !/vaz[aã]o|l\/h|flow/i.test(k)));
+            const explicitVazaoKey = keys.find(k => /vaz[aã]o|l\/h|flow|m3|m³|volume|litros/i.test(k.trim()));
 
-                let numericVazao = typeof rawVazao === 'number' ? rawVazao : parseFloat(String(rawVazao).replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
-                let parsedDate = parseAnyDateString(String(rawDate));
-                if (!parsedDate) return;
+            if (explicitPocoKey && explicitVazaoKey && explicitPocoKey !== explicitVazaoKey) {
+                dataRows.forEach((row, idx) => {
+                    const rawDate = row[dateKey];
+                    const rawPoco = row[explicitPocoKey];
+                    const rawVazao = row[explicitVazaoKey];
 
-                rawData.push({
-                    id: index + 1,
-                    dateObj: parsedDate,
-                    dateStr: formatDateISO(parsedDate),
-                    dateDisplay: formatDateBR(parsedDate),
-                    ano: parsedDate.getFullYear(),
-                    mes: parsedDate.getMonth() + 1,
-                    semana: getISOWeekNumber(parsedDate),
-                    poco: String(rawPoco).trim(),
-                    vazao: numericVazao
+                    if (!rawDate || !rawPoco || rawVazao === undefined || rawVazao === '') return;
+
+                    const parsedDate = parseAnyDateString(String(rawDate));
+                    const numVazao = parseNumericValue(rawVazao);
+
+                    if (parsedDate && !isNaN(numVazao)) {
+                        rawData.push({
+                            id: idx + 1,
+                            dateObj: parsedDate,
+                            dateStr: formatDateISO(parsedDate),
+                            dateDisplay: formatDateBR(parsedDate),
+                            ano: parsedDate.getFullYear(),
+                            mes: parsedDate.getMonth() + 1,
+                            semana: getISOWeekNumber(parsedDate),
+                            poco: String(rawPoco).trim(),
+                            vazao: numVazao
+                        });
+                    }
                 });
-            });
+            } else {
+                const nonWellRegex = /data|date|total|soma|m[eé]dia|obs|observa[çc][aã]o|semana|ano|mes|mês|id|index/i;
+                const wellColumns = keys.filter(k => k !== dateKey && !nonWellRegex.test(k.trim()));
 
-            if (rawData.length === 0) { useFallbackMockData('Sem registros válidos.'); return; }
+                dataRows.forEach((row) => {
+                    const rawDate = row[dateKey];
+                    if (!rawDate) return;
+                    const parsedDate = parseAnyDateString(String(rawDate));
+                    if (!parsedDate) return;
+
+                    wellColumns.forEach((wellCol) => {
+                        const rawVazao = row[wellCol];
+                        if (rawVazao === undefined || rawVazao === '' || rawVazao === null) return;
+                        const numVazao = parseNumericValue(rawVazao);
+                        
+                        if (!isNaN(numVazao) && numVazao >= 0) {
+                            rawData.push({
+                                id: rawData.length + 1,
+                                dateObj: parsedDate,
+                                dateStr: formatDateISO(parsedDate),
+                                dateDisplay: formatDateBR(parsedDate),
+                                ano: parsedDate.getFullYear(),
+                                mes: parsedDate.getMonth() + 1,
+                                semana: getISOWeekNumber(parsedDate),
+                                poco: String(wellCol).trim(),
+                                vazao: numVazao
+                            });
+                        }
+                    });
+                });
+            }
+
+            if (rawData.length === 0) {
+                useFallbackMockData('Nenhuma medição válida encontrada na planilha.');
+                return;
+            }
+
             rawData.sort((a, b) => a.dateObj - b.dateObj);
-            updateStatus('Dados sincronizados', 'success');
+            updateStatus(`${rawData.length} medições carregadas`, 'success');
+            showToast(`${rawData.length} dados de medição sincronizados com sucesso.`, 'success');
+            
             initFiltersUI();
             applyFilters();
+        }
+
+        function parseNumericValue(val) {
+            if (typeof val === 'number') return val;
+            if (!val) return NaN;
+            let s = String(val).trim();
+            if (s.includes(',') && s.includes('.')) {
+                s = s.replace(/\./g, '').replace(',', '.');
+            } else if (s.includes(',')) {
+                s = s.replace(',', '.');
+            } else if (/\d+\.\d{3}$/.test(s)) {
+                s = s.replace(/\./g, '');
+            }
+            s = s.replace(/[^\d.-]/g, '');
+            return parseFloat(s);
         }
 
         function parseAnyDateString(val) {
@@ -548,20 +537,22 @@
 
         function useFallbackMockData(msg) {
             updateStatus(msg, 'warning');
-            const mockPocos = ['Poço 01 - Sede', 'Poço 02 - Pivô Norte', 'Poço 03 - Pivô Sul', 'Poço 04 - Reservatório'];
+            showToast(msg + ' - Exibindo dados simulados.', 'info');
+            
+            const mockPocos = ['Poço 01 - Sede', 'Poço 02 - Pivô Norte', 'Poço 03 - Pivô Sul', 'Poço 04 - Reservatório', 'Poço 05 - Estufa'];
             const today = new Date();
             rawData = [];
-            for (let i = 0; i < 20; i++) {
-                let d = new Date(today); d.setDate(today.getDate() - (40 - (i * 2)));
+            
+            for (let i = 0; i < 25; i++) {
+                let d = new Date(today); d.setDate(today.getDate() - (50 - (i * 2)));
                 mockPocos.forEach(p => {
-                    // Simular alguns dias sem leitura (null/ausência) para testar o spanGaps
-                    if (Math.random() > 0.9) return; 
+                    if (Math.random() > 0.92) return;
 
-                    let base = p.includes('01') ? 35000 : p.includes('02') ? 48000 : p.includes('03') ? 42000 : 29000;
+                    let base = p.includes('01') ? 38000 : p.includes('02') ? 52000 : p.includes('03') ? 44000 : p.includes('04') ? 31000 : 27000;
                     rawData.push({
                         id: rawData.length + 1, dateObj: d, dateStr: formatDateISO(d), dateDisplay: formatDateBR(d),
                         ano: d.getFullYear(), mes: d.getMonth() + 1, semana: getISOWeekNumber(d), poco: p,
-                        vazao: Math.round(base + (Math.sin(i) * 3000) + (Math.random() * 1500))
+                        vazao: Math.round(base + (Math.sin(i) * 4000) + (Math.random() * 2000))
                     });
                 });
             }
@@ -598,24 +589,71 @@
         function renderPocoPills(pocosList) {
             const container = document.getElementById('pocoPillsContainer');
             container.innerHTML = '';
-            pocosList.forEach((poco, idx) => {
+            
+            const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+            pocosList.forEach((poco) => {
                 const isChecked = selectedPocos.has(poco);
-                const color = getWellColor(idx);
+                const gIdx = allRawPocos.indexOf(poco);
+                const color = getWellColor(gIdx);
+
                 const btn = document.createElement('button');
-                btn.type = 'button'; btn.onclick = () => {
+                btn.type = 'button'; 
+                btn.onclick = () => {
                     isChecked ? selectedPocos.delete(poco) : selectedPocos.add(poco);
-                    renderPocoPills(pocosList); applyFilters();
+                    renderPocoPills(pocosList); 
+                    applyFilters();
                 };
-                btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border ${isChecked ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'}`;
-                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></span><span>${poco}</span><i class="fa-solid ${isChecked ? 'fa-check' : 'fa-plus'} text-[10px] ml-1"></i>`;
+
+                if (isChecked) {
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm border transform active:scale-95 hover:brightness-105`;
+                    btn.style.backgroundColor = `${color}18`; // Preenchimento suave com a cor do poço
+                    btn.style.borderColor = color;
+                    btn.style.color = '#0f172a';
+                    btn.innerHTML = `
+                        <span class="relative flex h-3 w-3 items-center justify-center flex-shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40" style="background-color: ${color}"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5" style="background-color: ${color}"></span>
+                        </span>
+                        <span class="truncate max-w-[160px] font-semibold">${poco}</span>
+                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] text-white font-bold" style="background-color: ${color}">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                    `;
+                } else {
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition border bg-slate-100/80 text-slate-400 border-slate-200 hover:bg-slate-200/60 opacity-60`;
+                    btn.innerHTML = `
+                        <span class="w-2.5 h-2.5 rounded-full bg-slate-300 flex-shrink-0"></span>
+                        <span class="truncate max-w-[160px] line-through">${poco}</span>
+                        <i class="fa-solid fa-plus text-slate-400 text-[10px]"></i>
+                    `;
+                }
                 container.appendChild(btn);
             });
+
+            document.getElementById('selectedPocosCount').innerText = `${selectedPocos.size}/${pocosList.length}`;
         }
 
         function selectAllPocos(select) {
             const all = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
             select ? selectedPocos = new Set(all) : selectedPocos.clear();
-            renderPocoPills(all); applyFilters();
+            renderPocoPills(all); 
+            applyFilters();
+        }
+
+        function setQuickDateRange(mode) {
+            if (!rawData.length) return;
+            const end = rawData[rawData.length - 1].dateObj;
+            if (mode === 'all') {
+                document.getElementById('startDate').value = rawData[0].dateStr;
+                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
+            } else if (mode === '30days') {
+                const start = new Date(end);
+                start.setDate(start.getDate() - 30);
+                document.getElementById('startDate').value = formatDateISO(start);
+                document.getElementById('endDate').value = formatDateISO(end);
+            }
+            applyFilters();
         }
 
         function resetFilters() {
@@ -653,12 +691,10 @@
             const avg = count > 0 ? total / count : 0;
             let maxItem = { vazao: 0, poco: '-', dateDisplay: '-' };
             const volByPoco = {};
-            const countByPoco = {};
 
             filteredData.forEach(item => {
                 if (item.vazao > maxItem.vazao) maxItem = item;
                 volByPoco[item.poco] = (volByPoco[item.poco] || 0) + item.vazao;
-                countByPoco[item.poco] = (countByPoco[item.poco] || 0) + 1;
             });
 
             let topName = '-', topVol = 0;
@@ -671,83 +707,62 @@
             document.getElementById('kpiMaxPoco').innerText = maxItem.poco !== '-' ? `${maxItem.poco} (${maxItem.dateDisplay})` : 'Nenhum dado';
             document.getElementById('kpiTopPoco').innerText = topName;
             document.getElementById('kpiTopPocoVal').innerText = topVol > 0 ? topVol.toLocaleString('pt-BR') + ' L Total' : '0 L Total';
-
-            // Atualizar os cards de resumo por poço (Campos Gerais)
-            const summaryGrid = document.getElementById('exportPocoCardsGrid');
-            if (summaryGrid) {
-                summaryGrid.innerHTML = '';
-                const sortedPocos = Object.keys(volByPoco).sort((a,b) => volByPoco[b] - volByPoco[a]);
-                if (sortedPocos.length === 0) {
-                    summaryGrid.innerHTML = '<span class="text-xs text-slate-400">Nenhum poço selecionado.</span>';
-                } else {
-                    sortedPocos.forEach(pName => {
-                        const pVol = volByPoco[pName];
-                        const pCnt = countByPoco[pName] || 1;
-                        const pAvg = Math.round(pVol / pCnt);
-                        const sharePct = total > 0 ? ((pVol / total) * 100).toFixed(1) : '0';
-                        summaryGrid.innerHTML += `
-                            <div class="bg-slate-50 border border-slate-200/70 p-3 rounded-xl shadow-xs">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-xs font-bold text-slate-800 truncate">${pName}</p>
-                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">${sharePct}%</span>
-                                </div>
-                                <div class="mt-2 flex items-baseline justify-between text-xs">
-                                    <span class="text-slate-500">Vol. Total:</span>
-                                    <span class="font-bold text-emerald-700">${pVol.toLocaleString('pt-BR')} L</span>
-                                </div>
-                                <div class="flex items-baseline justify-between text-[11px] text-slate-500 mt-1">
-                                    <span>Vazão Média:</span>
-                                    <span class="font-semibold text-slate-700">${pAvg.toLocaleString('pt-BR')} L/H</span>
-                                </div>
-                                <div class="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
-                                    <div class="bg-emerald-600 h-1.5 rounded-full" style="width: ${sharePct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-            }
         }
 
         function updateChart() {
             const ctx = document.getElementById('vazaoChart').getContext('2d');
             const labelMode = document.getElementById('labelModeSelect').value;
 
+            // Ordenar datas únicas
             const uniqueDates = Array.from(new Set(filteredData.map(d => d.dateDisplay))).sort((a, b) => {
                 const p1 = a.split('/'), p2 = b.split('/');
                 return new Date(p1[2], p1[1]-1, p1[0]) - new Date(p2[2], p2[1]-1, p2[0]);
             });
+
             const activePocos = Array.from(new Set(filteredData.map(d => d.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
             
             const pocoMap = {};
             activePocos.forEach(p => pocoMap[p] = {});
-            filteredData.forEach(item => pocoMap[item.poco][item.dateDisplay] = item.vazao);
+            
+            filteredData.forEach(item => {
+                if (!pocoMap[item.poco][item.dateDisplay]) {
+                    pocoMap[item.poco][item.dateDisplay] = [];
+                }
+                pocoMap[item.poco][item.dateDisplay].push(item.vazao);
+            });
 
             const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
+            // Construir Datasets para TODOS os Poços Ativos
             const datasets = activePocos.map((pocoName, sIdx) => {
                 const gIdx = allRawPocos.indexOf(pocoName);
                 const color = getWellColor(gIdx >= 0 ? gIdx : sIdx);
-                const dataPts = uniqueDates.map(d => pocoMap[pocoName][d] ?? null);
                 
+                const dataPts = uniqueDates.map(d => {
+                    const arr = pocoMap[pocoName][d];
+                    if (!arr || arr.length === 0) return null;
+                    const sum = arr.reduce((acc, v) => acc + v, 0);
+                    return Math.round(sum / arr.length);
+                });
+
                 const validVals = dataPts.filter(v => v !== null);
-                const minVal = Math.min(...validVals);
-                const maxVal = Math.max(...validVals);
+                const minVal = validVals.length ? Math.min(...validVals) : 0;
+                const maxVal = validVals.length ? Math.max(...validVals) : 0;
 
                 return {
-                    label: pocoName, data: dataPts,
-                    borderColor: color, 
+                    label: pocoName,
+                    data: dataPts,
+                    borderColor: color,
                     backgroundColor: color,
-                    borderWidth: 2.5,
+                    borderWidth: 3,
                     tension: isSmoothCurve ? 0.35 : 0,
-                    
-                    pointRadius: 4.5, 
-                    pointHoverRadius: 6.5,
-                    pointBackgroundColor: color,
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    spanGaps: true, 
-                    clip: false, // Evita corte nos pontos e rótulos das bordas superiores e laterais
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: color,
+                    pointBorderWidth: 2.5,
+                    spanGaps: true,
+                    clip: true,
                     
                     datalabels: {
                         display: function(context) {
@@ -755,22 +770,24 @@
                             const val = context.dataset.data[context.dataIndex];
                             if (val === null || val === undefined) return false;
                             if (labelMode === 'extremes') return val === maxVal || val === minVal;
-                            return 'auto';
+                            return true; // Exibe 100% dos dados para não haver valores ocultos
                         },
-                        clamp: true, // Garante que os números permaneçam dentro da área visível do gráfico
+                        clamp: true,
                         formatter: v => v !== null ? v.toLocaleString('pt-BR') : '',
-                        
-                        anchor: 'end',
-                        align: 'top', 
-                        offset: 4,
-                        
+                        align: function(context) {
+                            const val = context.dataset.data[context.dataIndex];
+                            if (val === maxVal) return 'top';
+                            if (val === minVal) return 'bottom';
+                            return (context.dataIndex + context.datasetIndex) % 2 === 0 ? 'top' : 'bottom';
+                        },
+                        offset: 6,
                         font: { family: 'Inter', size: 9, weight: 'bold' },
-                        backgroundColor: color,
-                        color: '#ffffff',
-                        borderColor: 'rgba(255,255,255,0.9)', 
-                        borderWidth: 1, 
-                        borderRadius: 4,
-                        padding: { top: 2, bottom: 2, left: 5, right: 5 }
+                        backgroundColor: color, // Preenchimento da etiqueta com a cor própria do poço
+                        color: '#ffffff', // Texto em branco contrastante
+                        borderColor: '#ffffff', 
+                        borderWidth: 1.5, 
+                        borderRadius: 6,
+                        padding: { top: 3, bottom: 3, left: 6, right: 6 }
                     }
                 };
             });
@@ -778,10 +795,9 @@
             if (chartInstance) chartInstance.destroy();
 
             const canvasWrapper = document.getElementById('canvasWrapper');
-            const minW = Math.max(100, uniqueDates.length * 75); 
-            canvasWrapper.style.minWidth = `max(100%, ${minW}px)`;
+            canvasWrapper.style.minWidth = '100%'; // Garante que ocupará 100% sem barra de rolagem
 
-            document.getElementById('chartPointsCount').innerText = `${uniqueDates.length} datas | ${activePocos.length} poços`;
+            document.getElementById('chartPointsCount').innerText = `${uniqueDates.length} datas | ${activePocos.length} poços e ${filteredData.length} pontos no gráfico`;
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -789,22 +805,60 @@
                 options: {
                     responsive: true, 
                     maintainAspectRatio: false,
-                    // Margens internas ampliadas para garantir zero cortes de rótulos topo/lados
-                    layout: { padding: { top: 38, right: 35, bottom: 15, left: 15 } },
+                    layout: { 
+                        padding: { top: 45, right: 35, bottom: 40, left: 20 } 
+                    },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 11, weight: '600' } } },
-                        tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleFont: { family: 'Inter', size: 12 }, padding: 10, cornerRadius: 8 }
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                usePointStyle: true, 
+                                boxWidth: 10, 
+                                font: { family: 'Inter', size: 12, weight: '600' },
+                                padding: 15
+                            } 
+                        },
+                        tooltip: { 
+                            backgroundColor: 'rgba(15,23,42,0.95)', 
+                            titleFont: { family: 'Inter', size: 12, weight: 'bold' },
+                            bodyFont: { family: 'Inter', size: 11 },
+                            padding: 12, 
+                            cornerRadius: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.y !== null) label += context.parsed.y.toLocaleString('pt-BR') + ' L/H';
+                                    return label;
+                                }
+                            }
+                        }
                     },
                     scales: {
                         x: { 
                             grid: { color: '#f1f5f9' }, 
-                            ticks: { font: { size: 10 }, color: '#64748b', maxRotation: 45 },
+                            ticks: { 
+                                font: { size: 10 }, 
+                                color: '#64748b', 
+                                autoSkip: true, 
+                                maxRotation: 0, 
+                                minRotation: 0,
+                                callback: function(value) {
+                                    const label = this.getLabelForValue(value);
+                                    // Corta os 5 primeiros caracteres para manter apenas DD/MM (ex: 21/09)
+                                    return label ? label.substring(0, 5) : label;
+                                }
+                            } 
                         },
                         y: { 
+                            grace: '15%', // Adiciona 15% de margem extra para os rótulos não tocarem no fundo
                             grid: { color: '#f1f5f9' }, 
-                            grace: '22%',
-                            ticks: { font: { size: 10 }, callback: v => v.toLocaleString('pt-BR') + ' L/H' } 
+                            ticks: { 
+                                font: { size: 11 }, 
+                                color: '#64748b',
+                                callback: v => v.toLocaleString('pt-BR') + ' L/H' 
+                            } 
                         }
                     }
                 }
@@ -813,213 +867,105 @@
 
         function toggleTension() {
             isSmoothCurve = !isSmoothCurve;
-            document.getElementById('tensionText').innerText = isSmoothCurve ? 'Linhas Suaves' : 'Linhas Retas';
+            document.getElementById('tensionText').innerText = isSmoothCurve ? 'Suave' : 'Reta';
             updateChart();
         }
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            let tData = [...filteredData];
-            const q = document.getElementById('searchInput').value.toLowerCase().trim();
-            if (q) tData = tData.filter(r => r.poco.toLowerCase().includes(q) || r.dateDisplay.includes(q) || String(r.vazao).includes(q) || String(r.ano).includes(q));
-
-            tData.sort((a, b) => {
-                let vA = currentSort.column === 'date' ? a.dateObj : a[currentSort.column];
-                let vB = currentSort.column === 'date' ? b.dateObj : b[currentSort.column];
-                if (vA < vB) return currentSort.direction === 'asc' ? -1 : 1;
-                if (vA > vB) return currentSort.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            const total = tData.length, tPages = Math.ceil(total / itemsPerPage) || 1;
-            currentPage = Math.max(1, Math.min(currentPage, tPages));
-            const start = (currentPage - 1) * itemsPerPage;
-            const pData = tData.slice(start, start + itemsPerPage);
-
-            if (pData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">Nenhum registro encontrado.</td></tr>`;
-            } else {
-                pData.forEach(row => {
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                            <td class="py-3 px-4 font-medium">${row.dateDisplay}</td>
-                            <td class="py-3 px-4 text-slate-600">${row.ano}</td>
-                            <td class="py-3 px-4 text-slate-600">Sem. ${row.semana}</td>
-                            <td class="py-3 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-bore-hole text-[10px]"></i> ${row.poco}</span></td>
-                            <td class="py-3 px-4 text-right font-bold text-slate-900">${row.vazao.toLocaleString('pt-BR')} L/H</td>
-                        </tr>`;
-                });
-            }
-            document.getElementById('tableInfo').innerText = `Exibindo ${total === 0 ? 0 : start + 1} até ${Math.min(start + itemsPerPage, total)} de ${total}`;
-            document.getElementById('pageNumber').innerText = `${currentPage} de ${tPages}`;
-            document.getElementById('btnPrevPage').disabled = currentPage === 1;
-            document.getElementById('btnNextPage').disabled = currentPage === tPages || tPages === 0;
-        }
-
-        function changePage(d) { currentPage += d; renderTable(); }
-        function filterTableSearch() { currentPage = 1; renderTable(); }
-        function sortTable(c) { currentSort.direction = currentSort.column === c && currentSort.direction === 'asc' ? 'desc' : 'asc'; currentSort.column = c; renderTable(); }
         function reloadData() { loadDataFromSheet(); }
 
         function exportFilteredDataCSV() {
-            if (!filteredData.length) return alert('Sem dados para exportar.');
+            if (!filteredData.length) return showToast('Sem dados para exportar.', 'error');
             const csv = ['Data,Ano,Semana,Poço,Vazão (L/H)'].concat(filteredData.map(r => `"${r.dateDisplay}","${r.ano}","${r.semana}","${r.poco}","${r.vazao}"`)).join('\n');
             const link = document.createElement('a');
             link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `Vazao_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `Vazao_Fazenda_Oasis_${new Date().toISOString().split('T')[0]}.csv`;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            showToast('Arquivo CSV baixado.', 'success');
         }
 
         async function prepareForExport() {
             document.getElementById('exportLoadingOverlay').classList.remove('hidden');
-            
-            const exportArea = document.getElementById('exportableArea');
             const scrollContainer = document.getElementById('chartScrollContainer');
             const wrapper = document.getElementById('canvasWrapper');
-            const chartBox = scrollContainer.parentElement; 
             
-            // Atualiza cabeçalho de exportação
-            const startVal = document.getElementById('startDate').value;
-            const endVal = document.getElementById('endDate').value;
-            const fmtDate = (s) => s ? s.split('-').reverse().join('/') : 'Início';
-            document.getElementById('exportReportSubtitle').innerText = `Período: ${fmtDate(startVal)} até ${fmtDate(endVal)} | Total de Poços Ativos: ${selectedPocos.size}`;
-            document.getElementById('exportReportDate').innerText = new Date().toLocaleString('pt-BR');
+            const originalOverflow = scrollContainer.style.overflowX;
+            const originalWidth = wrapper.style.minWidth;
 
-            const state = {
-                originalOverflow: scrollContainer.style.overflowX,
-                originalWidth: exportArea.style.width,
-                originalMaxWidth: exportArea.style.maxWidth,
-                originalWrapperWidth: wrapper.style.width,
-                originalWrapperMinWidth: wrapper.style.minWidth,
-                originalBoxOverflow: chartBox.style.overflow,
-                originalBoxWidth: chartBox.style.width,
-                chartBoxClass: chartBox.className
-            };
-
-            // Ativa modo de exportação com proporção perfeita para A4 Paisagem (1200px largura padrão)
-            exportArea.classList.add('export-mode-active');
-            exportArea.style.width = '1200px';
-            exportArea.style.maxWidth = '1200px';
-            
             scrollContainer.style.overflowX = 'visible';
-            scrollContainer.style.width = '100%';
             scrollContainer.classList.add('hide-scroll-for-export');
-
-            chartBox.classList.remove('overflow-hidden');
-            chartBox.style.overflow = 'visible';
-            chartBox.style.width = '100%';
-
-            wrapper.style.minWidth = '100%';
-            wrapper.style.width = '100%';
+            wrapper.style.minWidth = '100%'; 
             
-            if (chartInstance) {
-                chartInstance.resize();
-                chartInstance.update('none');
-            }
-            
-            await new Promise(r => setTimeout(r, 450));
+            if (chartInstance) chartInstance.resize();
+            await new Promise(r => setTimeout(r, 500));
 
-            return { exportArea, scrollContainer, chartBox, wrapper, ...state };
+            return { scrollContainer, wrapper, originalOverflow, originalWidth };
         }
 
         async function restoreAfterExport(state) {
             state.scrollContainer.style.overflowX = state.originalOverflow;
-            state.scrollContainer.style.width = '';
             state.scrollContainer.classList.remove('hide-scroll-for-export');
-            
-            state.chartBox.className = state.chartBoxClass;
-            state.chartBox.style.overflow = state.originalBoxOverflow;
-            state.chartBox.style.width = state.originalBoxWidth;
-
-            state.wrapper.style.width = state.originalWrapperWidth;
-            state.wrapper.style.minWidth = state.originalWrapperMinWidth;
-
-            state.exportArea.classList.remove('export-mode-active');
-            state.exportArea.style.width = state.originalWidth;
-            state.exportArea.style.maxWidth = state.originalMaxWidth;
-            
-            updateChart();
+            state.wrapper.style.minWidth = state.originalWidth;
+            if (chartInstance) chartInstance.resize();
             document.getElementById('exportLoadingOverlay').classList.add('hidden');
         }
 
         async function exportDashboard(format) {
-            if (typeof htmlToImage === 'undefined') {
-                alert("A biblioteca html-to-image ainda está carregando. Aguarde alguns segundos e tente novamente.");
+            if (typeof html2canvas === 'undefined') {
+                showToast("Aguarde o carregamento do gerador de imagem.", "error");
                 return;
             }
 
-            let state = null;
-            try {
-                state = await prepareForExport();
-                const exportArea = state.exportArea;
+            const exportArea = document.getElementById('exportableArea');
+            const originalState = await prepareForExport();
 
-                // Captura em altíssima definição (pixelRatio: 2.5)
-                const canvas = await htmlToImage.toCanvas(exportArea, {
-                    quality: 0.98,
-                    pixelRatio: 2.5,
-                    backgroundColor: '#ffffff',
-                    cacheBust: true,
-                    filter: (node) => {
-                        if (node.classList && node.classList.contains('no-export')) return false;
-                        if (node.dataset && node.dataset.html2canvasIgnore === 'true') return false;
-                        return true;
-                    }
+            try {
+                const canvas = await html2canvas(exportArea, {
+                    scale: 2,
+                    backgroundColor: '#f8fafc',
+                    useCORS: true,
+                    logging: false
                 });
 
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 const dateStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
 
                 if (format === 'jpeg') {
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const link = document.createElement('a');
-                    link.download = `Relatorio_Vazao_Fazenda_Oasis_${dateStr}.jpg`;
+                    link.download = `Relatorio_Vazao_Oasis_${dateStr}.jpg`;
                     link.href = imgData;
                     link.click();
+                    showToast('Relatório em JPG baixado.', 'success');
                 } 
                 else if (format === 'pdf') {
-                    if (!window.jspdf) throw new Error("jsPDF não carregado");
+                    if (!window.jspdf) throw new Error("jsPDF indisponível");
                     const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('landscape', 'mm', 'a4');
                     
-                    // Margens ajustadas para 8mm nas 4 bordas para ocupação perfeita da folha A4 Paisagem
-                    const margin = 8; 
-                    const pdfWidth = 297; // A4 Paisagem em mm
-                    const pdfHeight = 210;
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const margin = 10;
+                    const maxDrawWidth = pdfWidth - (margin * 2);
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const imgRatio = imgProps.width / imgProps.height;
+                    const drawWidth = maxDrawWidth;
+                    const drawHeight = maxDrawWidth / imgRatio;
+
+                    pdf.setFontSize(16);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text("Relatório Geral de Vazão - Fazenda Oasis", margin, margin + 5);
                     
-                    const usableWidth = pdfWidth - (margin * 2); // 281mm
-                    const usableHeight = pdfHeight - (margin * 2); // 194mm
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(100, 116, 139);
+                    pdf.text(`Emissão: ${new Date().toLocaleString('pt-BR')} | Dados consolidados`, margin, margin + 11);
 
-                    const imgRatio = canvas.width / canvas.height;
-
-                    // Ajusta para preencher a largura útil da página
-                    let renderWidth = usableWidth;
-                    let renderHeight = renderWidth / imgRatio;
-
-                    // Se exceder a altura útil da folha, ajusta proporcionalmente
-                    if (renderHeight > usableHeight) {
-                        renderHeight = usableHeight;
-                        renderWidth = renderHeight * imgRatio;
-                    }
-
-                    // Centralização perfeita na página
-                    const xOffset = margin + (usableWidth - renderWidth) / 2;
-                    const yOffset = margin + (usableHeight - renderHeight) / 2;
-
-                    const pdf = new jsPDF({
-                        orientation: 'landscape',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
-
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    pdf.addImage(imgData, 'JPEG', xOffset, yOffset, renderWidth, renderHeight);
-                    
-                    pdf.save(`Relatorio_Vazao_Fazenda_Oasis_${dateStr}.pdf`);
+                    pdf.addImage(imgData, 'JPEG', margin, margin + 16, drawWidth, drawHeight);
+                    pdf.save(`Relatorio_Vazao_Oasis_${dateStr}.pdf`);
+                    showToast('Relatório em PDF gerado.', 'success');
                 }
             } catch (err) {
-                console.error("Erro ao exportar com html-to-image:", err);
-                alert("Houve um problema ao gerar o relatório. Tente novamente.");
+                console.error("Erro ao exportar:", err);
+                showToast("Ocorreu um erro ao gerar o relatório.", "error");
             } finally {
-                if (state) await restoreAfterExport(state);
+                await restoreAfterExport(originalState);
             }
         }
     </script>
