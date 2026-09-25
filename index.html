@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Vazão - Fazenda Oasis</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        oasis: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- html2canvas para capturar a tela inteira (KPIs + Gráfico) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Classe para esconder a barra de rolagem temporariamente durante a exportação */
+        .hide-scroll-for-export { overflow: visible !important; }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-emerald-500/20 border border-emerald-400/30 rounded-xl backdrop-blur-md">
+                        <i class="fa-solid fa-droplet text-2xl text-emerald-400 animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                            Controle de Vazão
+                            <span class="text-xs font-normal px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">L/H</span>
+                        </h1>
+                        <p class="text-emerald-200/80 text-sm font-medium flex items-center gap-1.5">
+                            <i class="fa-solid fa-wheat-awn text-amber-400 text-xs"></i>
+                            Fazenda Oasis
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div id="statusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-medium text-slate-300">
+                        <span class="relative flex h-2 w-2">
+                          <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span id="statusDot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span id="statusText">Conectando...</span>
+                    </div>
+
+                    <button onclick="reloadData()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition shadow-sm hover:shadow active:scale-95">
+                        <i id="refreshIcon" class="fa-solid fa-rotate-right"></i>
+                        <span>Atualizar Dados</span>
+                    </button>
+
+                    <button onclick="exportFilteredDataCSV()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition active:scale-95">
+                        <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                        <span>Exportar CSV</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Controls / Filters Card -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-emerald-600"></i>
+                    Filtros de Análise
+                </h2>
+                <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                    Limpar Filtros
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="space-y-1">
+                    <label for="startDate" class="block text-xs font-medium text-slate-600">Data Início</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-regular fa-calendar text-xs"></i>
+                        </div>
+                        <input type="date" id="startDate" onchange="applyFilters()" 
+                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="endDate" class="block text-xs font-medium text-slate-600">Data Fim</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-regular fa-calendar-check text-xs"></i>
+                        </div>
+                        <input type="date" id="endDate" onchange="applyFilters()" 
+                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="monthSelect" class="block text-xs font-medium text-slate-600">Mês</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-regular fa-calendar-days text-xs"></i>
+                        </div>
+                        <select id="monthSelect" onchange="applyFilters()" 
+                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
+                            <option value="">Todos os Meses</option>
+                            <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
+                            <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
+                            <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
+                            <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="yearSelect" class="block text-xs font-medium text-slate-600">Ano</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                        </div>
+                        <select id="yearSelect" onchange="applyFilters()" 
+                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
+                            <option value="">Todos os Anos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bore-hole text-emerald-600"></i>
+                        Filtrar Poços:
+                    </label>
+                    <div class="flex items-center space-x-3 text-xs">
+                        <button onclick="selectAllPocos(true)" class="text-emerald-600 hover:underline font-medium">Selecionar Todos</button>
+                        <span class="text-slate-300">|</span>
+                        <button onclick="selectAllPocos(false)" class="text-slate-500 hover:underline">Desmarcar Todos</button>
+                    </div>
+                </div>
+                <div id="pocoPillsContainer" class="flex flex-wrap gap-2 max-h-28 overflow-y-auto custom-scrollbar p-1">
+                    <span class="text-xs text-slate-400 animate-pulse">Carregando poços...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ÁREA EXPORTÁVEL (KPIs + Gráfico) -->
+        <div id="exportableArea" class="space-y-6 bg-slate-50">
+            
+            <!-- KPI Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="space-y-1 z-10">
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Volume Total Filtrado</p>
+                        <p id="kpiTotalVazao" class="text-2xl font-bold text-slate-800">0 L</p>
+                        <p id="kpiRecordCount" class="text-xs text-slate-500">0 registros encontrados</p>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                        <i class="fa-solid fa-faucet-drip text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="space-y-1 z-10">
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Média da Vazão</p>
+                        <p id="kpiMediaVazao" class="text-2xl font-bold text-slate-800">0 L/H</p>
+                        <p class="text-xs text-slate-500">Por ponto de medição</p>
+                    </div>
+                    <div class="p-3 bg-sky-50 rounded-xl text-sky-600">
+                        <i class="fa-solid fa-gauge-high text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="space-y-1 z-10">
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Maior Vazão Medida</p>
+                        <p id="kpiMaxVazao" class="text-2xl font-bold text-slate-800">0 L/H</p>
+                        <p id="kpiMaxPoco" class="text-xs text-slate-500 truncate max-w-[150px]">Nenhum dado</p>
+                    </div>
+                    <div class="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+                        <i class="fa-solid fa-circle-arrow-up text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
+                    <div class="space-y-1 z-10">
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Poço de Maior Volume</p>
+                        <p id="kpiTopPoco" class="text-xl font-bold text-slate-800 truncate max-w-[160px]">-</p>
+                        <p id="kpiTopPocoVal" class="text-xs text-slate-500">0 L Total</p>
+                    </div>
+                    <div class="p-3 bg-amber-50 rounded-xl text-amber-600">
+                        <i class="fa-solid fa-award text-xl"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart Section -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4 relative">
+                
+                <!-- Overlay de Carregamento para Exportação -->
+                <div id="exportLoadingOverlay" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
+                    <div class="flex flex-col items-center text-emerald-600 font-medium">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i>
+                        <span>Gerando Relatório Completo...</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-emerald-600"></i>
+                            Evolução Temporal da Vazão (L/H)
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Séries: <span class="font-semibold text-slate-700">Poços selecionados</span>
+                        </p>
+                    </div>
+
+                    <!-- Configurações e Exportação -->
+                    <div class="flex flex-wrap items-center gap-2" data-html2canvas-ignore="true">
+                        <button onclick="exportDashboard('jpeg')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-image"></i> Baixar Relatório JPG
+                        </button>
+                        <button onclick="exportDashboard('pdf')" class="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-file-pdf"></i> Baixar Relatório PDF
+                        </button>
+
+                        <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl text-xs">
+                            <span class="text-slate-500 pl-2 font-medium">Etiquetas:</span>
+                            <select id="labelModeSelect" onchange="updateChart()" class="bg-white font-medium text-slate-700 rounded-lg px-2 py-1 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="all" selected>Exibir Todas</option>
+                                <option value="extremes">Apenas Máx / Mín</option>
+                                <option value="none">Ocultar Etiquetas</option>
+                            </select>
+                        </div>
+
+                        <button onclick="toggleTension()" id="tensionBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-1.5" title="Alternar curvas">
+                            <i class="fa-solid fa-bezier-curve text-slate-500"></i>
+                            <span id="tensionText">Linhas Suaves</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container do Gráfico (com scroll nativo mantido, mas ajustável na exportação) -->
+                <div class="relative w-full border border-slate-100 rounded-xl bg-slate-50 overflow-hidden">
+                    <div id="chartScrollContainer" class="overflow-x-auto w-full custom-scrollbar">
+                        <div id="canvasWrapper" class="relative min-h-[500px] h-[600px] w-full" style="min-width: 100%;">
+                            <canvas id="vazaoChart" class="w-full h-full"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info text-emerald-600"></i>
+                        Dica: O gráfico se ajusta automaticamente. Role horizontalmente se houver muitos dados.
+                    </span>
+                    <span id="chartPointsCount" class="font-medium text-slate-600">0 pontos no gráfico</span>
+                </div>
+            </section>
+        </div>
+        <!-- FIM DA ÁREA EXPORTÁVEL -->
+
+        <!-- Data Table Section -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-emerald-600"></i>
+                        Tabela de Registros
+                    </h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" id="searchInput" onkeyup="filterTableSearch()" placeholder="Pesquisar..." 
+                               class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 w-48 transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar rounded-xl border border-slate-200">
+                <table class="w-full text-left text-xs text-slate-700">
+                    <thead class="bg-slate-50 uppercase tracking-wider font-semibold text-slate-600 border-b border-slate-200">
+                        <tr>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('date')">Data <i class="fa-solid fa-sort ml-1"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('ano')">Ano <i class="fa-solid fa-sort ml-1"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('semana')">Semana <i class="fa-solid fa-sort ml-1"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('poco')">Poço <i class="fa-solid fa-sort ml-1"></i></th>
+                            <th class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('vazao')">Vazão (L/H) <i class="fa-solid fa-sort ml-1"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 pt-2">
+                <span id="tableInfo">Exibindo 0 registros</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="changePage(-1)" id="btnPrevPage" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-slate-200 transition">Anterior</button>
+                    <span id="pageNumber" class="font-semibold text-slate-700">1 de 1</span>
+                    <button onclick="changePage(1)" id="btnNextPage" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg disabled:opacity-50 hover:bg-slate-200 transition">Próximo</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>&copy; 2026 Fazenda Oasis</span>
+            <span class="flex items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-database text-emerald-500"></i> Google Sheets Integrado
+            </span>
+        </div>
+    </footer>
+
+    <script>
+        // Constants & Config
+        const PUBLISHED_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pub?output=csv';
+        const PUBLISHED_SHEET_HTML_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pubhtml';
+
+        let rawData = [];
+        let filteredData = [];
+        let selectedPocos = new Set();
+        let chartInstance = null;
+        let isSmoothCurve = true;
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        let currentSort = { column: 'date', direction: 'asc' };
+
+        const WELL_COLORS = [
+            '#059669', '#0284c7', '#7c3aed', '#d97706', '#dc2626', 
+            '#0891b2', '#4f46e5', '#ca8a04', '#be185d', '#15803d',
+            '#0369a1', '#6d28d9', '#b45309', '#b91c1c', '#0f766e'
+        ];
+
+        function getWellColor(index) {
+            return WELL_COLORS[index % WELL_COLORS.length];
+        }
+
+        window.onload = function() {
+            if (typeof ChartDataLabels !== 'undefined') Chart.register(ChartDataLabels);
+            loadDataFromSheet();
+        };
+
+        async function loadDataFromSheet() {
+            updateStatus('Carregando planilha...', 'loading');
+            document.getElementById('refreshIcon')?.classList.add('fa-spin');
+
+            try {
+                let response = await fetch(PUBLISHED_SHEET_CSV_URL);
+                if (!response.ok) response = await fetch(PUBLISHED_SHEET_HTML_URL);
+                const textData = await response.text();
+                
+                if (textData.includes('<table') || textData.includes('<!DOCTYPE')) {
+                    parseHTMLTableData(textData);
+                } else {
+                    parseCSVData(textData);
+                }
+            } catch (err) {
+                console.warn('Erro remoto:', err);
+                useFallbackMockData('Modo Demonstração (Sem conexão)');
+            } finally {
+                document.getElementById('refreshIcon')?.classList.remove('fa-spin');
+            }
+        }
+
+        function parseCSVData(csvText) {
+            Papa.parse(csvText, {
+                header: true, skipEmptyLines: true, dynamicTyping: false,
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) processParsedRows(results.data);
+                    else useFallbackMockData('Planilha vazia.');
+                },
+                error: function(e) { useFallbackMockData('Erro no CSV.'); }
+            });
+        }
+
+        function parseHTMLTableData(htmlText) {
+            const doc = new DOMParser().parseFromString(htmlText, 'text/html');
+            const rows = Array.from(doc.querySelectorAll('table tr'));
+            if (rows.length < 2) { useFallbackMockData('Tabela vazia.'); return; }
+
+            const headers = Array.from(rows[0].querySelectorAll('th, td')).map(c => c.textContent.trim());
+            const parsedData = [];
+            for (let i = 1; i < rows.length; i++) {
+                const cells = Array.from(rows[i].querySelectorAll('td')).map(c => c.textContent.trim());
+                if (cells.length === 0 || cells.every(c => !c)) continue;
+                let rowObj = {};
+                headers.forEach((h, idx) => rowObj[h] = cells[idx] || '');
+                parsedData.push(rowObj);
+            }
+            processParsedRows(parsedData);
+        }
+
+        function processParsedRows(dataRows) {
+            rawData = [];
+            dataRows.forEach((row, index) => {
+                const dateKey = Object.keys(row).find(k => /data|date/i.test(k));
+                const pocoKey = Object.keys(row).find(k => /poço|poco|well/i.test(k));
+                const vazaoKey = Object.keys(row).find(k => /vaz[aã]o|l\/h|flow/i.test(k));
+
+                let rawDate = row[dateKey];
+                let rawPoco = row[pocoKey];
+                let rawVazao = row[vazaoKey];
+
+                if (!rawDate || !rawPoco || rawVazao === undefined || rawVazao === '') return;
+
+                let numericVazao = typeof rawVazao === 'number' ? rawVazao : parseFloat(String(rawVazao).replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')) || 0;
+                let parsedDate = parseAnyDateString(String(rawDate));
+                if (!parsedDate) return;
+
+                rawData.push({
+                    id: index + 1,
+                    dateObj: parsedDate,
+                    dateStr: formatDateISO(parsedDate),
+                    dateDisplay: formatDateBR(parsedDate),
+                    ano: parsedDate.getFullYear(),
+                    mes: parsedDate.getMonth() + 1,
+                    semana: getISOWeekNumber(parsedDate),
+                    poco: String(rawPoco).trim(),
+                    vazao: numericVazao
+                });
+            });
+
+            if (rawData.length === 0) { useFallbackMockData('Sem registros válidos.'); return; }
+            rawData.sort((a, b) => a.dateObj - b.dateObj);
+            updateStatus('Dados sincronizados', 'success');
+            initFiltersUI();
+            applyFilters();
+        }
+
+        function parseAnyDateString(val) {
+            if (!val) return null;
+            val = val.trim();
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(val)) {
+                const p = val.split('/'); return new Date(p[2], p[1] - 1, p[0]);
+            }
+            if (/^\d{4}-\d{2}-\d{2}/.test(val)) {
+                const p = val.split('T')[0].split('-'); return new Date(p[0], p[1] - 1, p[2]);
+            }
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatDateBR(date) { return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`; }
+        function formatDateISO(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+        function getISOWeekNumber(d) {
+            const date = new Date(d.getTime()); date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+            const week1 = new Date(date.getFullYear(), 0, 4);
+            return Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7) + 1;
+        }
+
+        function useFallbackMockData(msg) {
+            updateStatus(msg, 'warning');
+            const mockPocos = ['Poço 01 - Sede', 'Poço 02 - Pivô Norte', 'Poço 03 - Pivô Sul', 'Poço 04 - Reservatório'];
+            const today = new Date();
+            rawData = [];
+            for (let i = 0; i < 20; i++) {
+                let d = new Date(today); d.setDate(today.getDate() - (40 - (i * 2)));
+                mockPocos.forEach(p => {
+                    // Simular alguns dias sem leitura (null/ausência) para testar o spanGaps
+                    if (Math.random() > 0.9) return; 
+
+                    let base = p.includes('01') ? 35000 : p.includes('02') ? 48000 : p.includes('03') ? 42000 : 29000;
+                    rawData.push({
+                        id: rawData.length + 1, dateObj: d, dateStr: formatDateISO(d), dateDisplay: formatDateBR(d),
+                        ano: d.getFullYear(), mes: d.getMonth() + 1, semana: getISOWeekNumber(d), poco: p,
+                        vazao: Math.round(base + (Math.sin(i) * 3000) + (Math.random() * 1500))
+                    });
+                });
+            }
+            rawData.sort((a, b) => a.dateObj - b.dateObj);
+            initFiltersUI();
+            applyFilters();
+        }
+
+        function updateStatus(text, state) {
+            document.getElementById('statusText').innerText = text;
+            const dot = document.getElementById('statusDot');
+            const ping = document.getElementById('statusPing');
+            if (state === 'success') { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"; }
+            else if (state === 'warning') { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"; }
+            else { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-sky-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"; }
+        }
+
+        function initFiltersUI() {
+            const yearSelect = document.getElementById('yearSelect');
+            const years = Array.from(new Set(rawData.map(r => r.ano))).sort((a, b) => b - a);
+            yearSelect.innerHTML = '<option value="">Todos os Anos</option>';
+            years.forEach(y => yearSelect.innerHTML += `<option value="${y}">${y}</option>`);
+
+            const pocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            selectedPocos = new Set(pocos);
+            renderPocoPills(pocos);
+
+            if (rawData.length > 0) {
+                document.getElementById('startDate').value = rawData[0].dateStr;
+                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
+            }
+        }
+
+        function renderPocoPills(pocosList) {
+            const container = document.getElementById('pocoPillsContainer');
+            container.innerHTML = '';
+            pocosList.forEach((poco, idx) => {
+                const isChecked = selectedPocos.has(poco);
+                const color = getWellColor(idx);
+                const btn = document.createElement('button');
+                btn.type = 'button'; btn.onclick = () => {
+                    isChecked ? selectedPocos.delete(poco) : selectedPocos.add(poco);
+                    renderPocoPills(pocosList); applyFilters();
+                };
+                btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border ${isChecked ? 'bg-slate-800 text-white border-slate-700' : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'}`;
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full" style="background-color: ${color}"></span><span>${poco}</span><i class="fa-solid ${isChecked ? 'fa-check' : 'fa-plus'} text-[10px] ml-1"></i>`;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAllPocos(select) {
+            const all = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            select ? selectedPocos = new Set(all) : selectedPocos.clear();
+            renderPocoPills(all); applyFilters();
+        }
+
+        function resetFilters() {
+            document.getElementById('monthSelect').value = '';
+            document.getElementById('yearSelect').value = '';
+            if (rawData.length > 0) {
+                document.getElementById('startDate').value = rawData[0].dateStr;
+                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
+            }
+            selectAllPocos(true);
+        }
+
+        function applyFilters() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            const month = document.getElementById('monthSelect').value;
+            const year = document.getElementById('yearSelect').value;
+
+            filteredData = rawData.filter(item => {
+                if (!selectedPocos.has(item.poco)) return false;
+                if (start && item.dateStr < start) return false;
+                if (end && item.dateStr > end) return false;
+                if (month && item.mes !== parseInt(month)) return false;
+                if (year && item.ano !== parseInt(year)) return false;
+                return true;
+            });
+
+            updateKPIs(); updateChart(); renderTable();
+        }
+
+        function updateKPIs() {
+            const total = filteredData.reduce((s, i) => s + i.vazao, 0);
+            const count = filteredData.length;
+            const avg = count > 0 ? total / count : 0;
+            let maxItem = { vazao: 0, poco: '-', dateDisplay: '-' };
+            const volByPoco = {};
+
+            filteredData.forEach(item => {
+                if (item.vazao > maxItem.vazao) maxItem = item;
+                volByPoco[item.poco] = (volByPoco[item.poco] || 0) + item.vazao;
+            });
+
+            let topName = '-', topVol = 0;
+            Object.keys(volByPoco).forEach(p => { if (volByPoco[p] > topVol) { topVol = volByPoco[p]; topName = p; } });
+
+            document.getElementById('kpiTotalVazao').innerText = total.toLocaleString('pt-BR') + ' L';
+            document.getElementById('kpiRecordCount').innerText = `${count} medições no período`;
+            document.getElementById('kpiMediaVazao').innerText = Math.round(avg).toLocaleString('pt-BR') + ' L/H';
+            document.getElementById('kpiMaxVazao').innerText = maxItem.vazao.toLocaleString('pt-BR') + ' L/H';
+            document.getElementById('kpiMaxPoco').innerText = maxItem.poco !== '-' ? `${maxItem.poco} (${maxItem.dateDisplay})` : 'Nenhum dado';
+            document.getElementById('kpiTopPoco').innerText = topName;
+            document.getElementById('kpiTopPocoVal').innerText = topVol > 0 ? topVol.toLocaleString('pt-BR') + ' L Total' : '0 L Total';
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('vazaoChart').getContext('2d');
+            const labelMode = document.getElementById('labelModeSelect').value;
+
+            const uniqueDates = Array.from(new Set(filteredData.map(d => d.dateDisplay))).sort((a, b) => {
+                const p1 = a.split('/'), p2 = b.split('/');
+                return new Date(p1[2], p1[1]-1, p1[0]) - new Date(p2[2], p2[1]-1, p2[0]);
+            });
+            const activePocos = Array.from(new Set(filteredData.map(d => d.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            
+            const pocoMap = {};
+            activePocos.forEach(p => pocoMap[p] = {});
+            filteredData.forEach(item => pocoMap[item.poco][item.dateDisplay] = item.vazao);
+
+            const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+            const datasets = activePocos.map((pocoName, sIdx) => {
+                const gIdx = allRawPocos.indexOf(pocoName);
+                const color = getWellColor(gIdx >= 0 ? gIdx : sIdx);
+                const dataPts = uniqueDates.map(d => pocoMap[pocoName][d] ?? null);
+                
+                const validVals = dataPts.filter(v => v !== null);
+                const minVal = Math.min(...validVals);
+                const maxVal = Math.max(...validVals);
+
+                return {
+                    label: pocoName, data: dataPts,
+                    borderColor: color, backgroundColor: color,
+                    borderWidth: 2.5,
+                    tension: isSmoothCurve ? 0.35 : 0,
+                    pointRadius: 4, // Aumentado para garantir visibilidade de pontos solitários
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: color,
+                    pointBorderWidth: 2,
+                    spanGaps: true, // IMPORTANTE: Conecta linhas com dados faltantes (null)
+                    clip: false, // Previne que pontos na margem sejam cortados
+                    
+                    datalabels: {
+                        display: function(context) {
+                            if (labelMode === 'none') return false;
+                            const val = context.dataset.data[context.dataIndex];
+                            if (val === null || val === undefined) return false;
+                            // Se for modo extremos, força mostrar
+                            if (labelMode === 'extremes') return val === maxVal || val === minVal;
+                            
+                            // 'auto' aciona o algoritmo nativo do plugin para ocultar etiquetas que se sobrepõem
+                            return 'auto';
+                        },
+                        // clamp: true impede que a etiqueta saia para fora da tela (corrige o corte)
+                        clamp: true,
+                        formatter: v => v !== null ? v.toLocaleString('pt-BR') : '',
+                        
+                        // Lógica limpa para o posicionamento
+                        align: function(context) {
+                            const val = context.dataset.data[context.dataIndex];
+                            if (val === maxVal) return 'top';
+                            if (val === minVal) return 'bottom';
+                            return (context.dataIndex + context.datasetIndex) % 2 === 0 ? 'top' : 'bottom';
+                        },
+                        offset: 6,
+                        
+                        font: { family: 'Inter', size: 9, weight: 'bold' },
+                        backgroundColor: 'rgba(255, 255, 255, 0.90)',
+                        borderColor: color, borderWidth: 1, borderRadius: 4,
+                        padding: { top: 3, bottom: 3, left: 5, right: 5 },
+                        color: '#1e293b'
+                    }
+                };
+            });
+
+            if (chartInstance) chartInstance.destroy();
+
+            // Ajuste dinâmico de largura para espalhar os dados
+            const canvasWrapper = document.getElementById('canvasWrapper');
+            const minW = Math.max(100, uniqueDates.length * 100); 
+            canvasWrapper.style.minWidth = `max(100%, ${minW}px)`;
+
+            document.getElementById('chartPointsCount').innerText = `${uniqueDates.length} datas | ${activePocos.length} poços`;
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: uniqueDates, datasets: datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    // Padding aumentado para dar mais respiro no topo e na direita para as etiquetas altas e longas
+                    layout: { padding: { top: 50, right: 50, bottom: 20, left: 20 } },
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Inter', size: 12, weight: '600' } } },
+                        tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleFont: { family: 'Inter', size: 12 }, padding: 12, cornerRadius: 8 }
+                    },
+                    scales: {
+                        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, color: '#64748b' } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 }, callback: v => v.toLocaleString('pt-BR') + ' L/H' } }
+                    }
+                }
+            });
+        }
+
+        function toggleTension() {
+            isSmoothCurve = !isSmoothCurve;
+            document.getElementById('tensionText').innerText = isSmoothCurve ? 'Linhas Suaves' : 'Linhas Retas';
+            updateChart();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            let tData = [...filteredData];
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (q) tData = tData.filter(r => r.poco.toLowerCase().includes(q) || r.dateDisplay.includes(q) || String(r.vazao).includes(q) || String(r.ano).includes(q));
+
+            tData.sort((a, b) => {
+                let vA = currentSort.column === 'date' ? a.dateObj : a[currentSort.column];
+                let vB = currentSort.column === 'date' ? b.dateObj : b[currentSort.column];
+                if (vA < vB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (vA > vB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const total = tData.length, tPages = Math.ceil(total / itemsPerPage) || 1;
+            currentPage = Math.max(1, Math.min(currentPage, tPages));
+            const start = (currentPage - 1) * itemsPerPage;
+            const pData = tData.slice(start, start + itemsPerPage);
+
+            if (pData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">Nenhum registro encontrado.</td></tr>`;
+            } else {
+                pData.forEach(row => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                            <td class="py-3 px-4 font-medium">${row.dateDisplay}</td>
+                            <td class="py-3 px-4 text-slate-600">${row.ano}</td>
+                            <td class="py-3 px-4 text-slate-600">Sem. ${row.semana}</td>
+                            <td class="py-3 px-4"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-bore-hole text-[10px]"></i> ${row.poco}</span></td>
+                            <td class="py-3 px-4 text-right font-bold text-slate-900">${row.vazao.toLocaleString('pt-BR')} L/H</td>
+                        </tr>`;
+                });
+            }
+            document.getElementById('tableInfo').innerText = `Exibindo ${total === 0 ? 0 : start + 1} até ${Math.min(start + itemsPerPage, total)} de ${total}`;
+            document.getElementById('pageNumber').innerText = `${currentPage} de ${tPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === tPages || tPages === 0;
+        }
+
+        function changePage(d) { currentPage += d; renderTable(); }
+        function filterTableSearch() { currentPage = 1; renderTable(); }
+        function sortTable(c) { currentSort.direction = currentSort.column === c && currentSort.direction === 'asc' ? 'desc' : 'asc'; currentSort.column = c; renderTable(); }
+        function reloadData() { loadDataFromSheet(); }
+
+        function exportFilteredDataCSV() {
+            if (!filteredData.length) return alert('Sem dados para exportar.');
+            const csv = ['Data,Ano,Semana,Poço,Vazão (L/H)'].concat(filteredData.map(r => `"${r.dateDisplay}","${r.ano}","${r.semana}","${r.poco}","${r.vazao}"`)).join('\n');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `Vazao_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        // --- EXPORTAÇÃO AVANÇADA (html2canvas + jsPDF) ---
+
+        async function prepareForExport() {
+            document.getElementById('exportLoadingOverlay').classList.remove('hidden');
+            
+            const scrollContainer = document.getElementById('chartScrollContainer');
+            const wrapper = document.getElementById('canvasWrapper');
+            
+            // Salva os estilos originais
+            const originalOverflow = scrollContainer.style.overflowX;
+            const originalWidth = wrapper.style.minWidth;
+
+            // Força o container a mostrar tudo (remove o scroll)
+            scrollContainer.style.overflowX = 'visible';
+            scrollContainer.classList.add('hide-scroll-for-export');
+            
+            // Para a exportação ficar bonita na página, limitamos a largura do canvas ao tamanho da tela visível
+            // (Isso evita que o PDF/JPG fique espremido com fontes minúsculas)
+            wrapper.style.minWidth = '100%'; 
+            
+            // Pede ao ChartJS para re-renderizar no novo tamanho
+            chartInstance.resize();
+            
+            // Pequena pausa para garantir a renderização no DOM
+            await new Promise(r => setTimeout(r, 600));
+
+            return { scrollContainer, wrapper, originalOverflow, originalWidth };
+        }
+
+        async function restoreAfterExport(state) {
+            state.scrollContainer.style.overflowX = state.originalOverflow;
+            state.scrollContainer.classList.remove('hide-scroll-for-export');
+            state.wrapper.style.minWidth = state.originalWidth;
+            chartInstance.resize();
+            document.getElementById('exportLoadingOverlay').classList.add('hidden');
+        }
+
+        async function exportDashboard(format) {
+            if (typeof html2canvas === 'undefined') {
+                alert("A biblioteca de exportação está carregando. Tente novamente em alguns segundos.");
+                return;
+            }
+
+            const exportArea = document.getElementById('exportableArea');
+            const originalState = await prepareForExport();
+
+            try {
+                // Captura toda a div 'exportableArea' (KPIs + Gráfico)
+                const canvas = await html2canvas(exportArea, {
+                    scale: 2, // Alta qualidade
+                    backgroundColor: '#f8fafc',
+                    useCORS: true,
+                    logging: false
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const dateStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+
+                if (format === 'jpeg') {
+                    const link = document.createElement('a');
+                    link.download = `Relatorio_Geral_Vazao_${dateStr}.jpg`;
+                    link.href = imgData;
+                    link.click();
+                } 
+                else if (format === 'pdf') {
+                    if (!window.jspdf) throw new Error("jsPDF não carregado");
+                    const { jsPDF } = window.jspdf;
+                    
+                    // PDF em Paisagem (Landscape), perfeito para dashboards
+                    const pdf = new jsPDF('landscape', 'mm', 'a4');
+                    
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10;
+                    
+                    // Cálculo preciso para usar toda a margem sem distorcer
+                    const maxDrawWidth = pdfWidth - (margin * 2);
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const imgRatio = imgProps.width / imgProps.height;
+                    
+                    // A imagem vai ocupar 100% da largura permitida pelas margens
+                    const drawWidth = maxDrawWidth;
+                    const drawHeight = maxDrawWidth / imgRatio;
+
+                    // Textos e Cabeçalho do PDF
+                    pdf.setFontSize(16);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text("Relatório Geral de Vazão - Fazenda Oasis", margin, margin + 5);
+                    
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(100, 116, 139);
+                    pdf.text(`Documento gerado em: ${new Date().toLocaleString('pt-BR')} | Filtros aplicados no sistema`, margin, margin + 11);
+
+                    // Adiciona a imagem capturada logo abaixo do título
+                    pdf.addImage(imgData, 'JPEG', margin, margin + 16, drawWidth, drawHeight);
+                    
+                    pdf.save(`Relatorio_Geral_Vazao_${dateStr}.pdf`);
+                }
+            } catch (err) {
+                console.error("Erro ao exportar:", err);
+                alert("Houve um problema ao gerar o arquivo. Tente novamente.");
+            } finally {
+                // Restaura o layout com barra de rolagem
+                await restoreAfterExport(originalState);
+            }
+        }
+    </script>
+</body>
+</html>
+```
