@@ -88,10 +88,22 @@
                         <span>Atualizar Dados</span>
                     </button>
 
-                    <button onclick="exportFilteredDataCSV()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium text-xs transition active:scale-95">
-                        <i class="fa-solid fa-file-csv text-emerald-400"></i>
-                        <span>Exportar CSV</span>
-                    </button>
+                    <div class="flex items-center gap-1 p-1 bg-slate-800/60 rounded-xl border border-slate-700/60 ml-1 shadow-inner">
+                        <button onclick="exportFilteredDataCSV()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar CSV">
+                            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+                            <span class="hidden sm:inline">CSV</span>
+                        </button>
+                        <div class="w-px h-4 bg-slate-600"></div>
+                        <button onclick="exportDashboard('jpeg')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar Gráfico JPG">
+                            <i class="fa-solid fa-image text-emerald-400"></i>
+                            <span class="hidden sm:inline">JPG</span>
+                        </button>
+                        <div class="w-px h-4 bg-slate-600"></div>
+                        <button onclick="exportDashboard('pdf')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar Relatório PDF">
+                            <i class="fa-solid fa-file-pdf text-red-400"></i>
+                            <span class="hidden sm:inline">PDF</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,7 +129,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div class="space-y-1">
                     <label for="startDate" class="block text-xs font-medium text-slate-600">Data Início</label>
                     <div class="relative">
@@ -168,6 +180,29 @@
                             <option value="">Todos os Anos</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="labelModeSelect" class="block text-xs font-medium text-slate-600">Rótulos (Gráfico)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-tags text-xs"></i>
+                        </div>
+                        <select id="labelModeSelect" onchange="updateChart()" 
+                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
+                            <option value="all" selected>Exibir Todos</option>
+                            <option value="extremes">Máx / Mín</option>
+                            <option value="none">Ocultar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="block text-xs font-medium text-slate-600">Estilo da Linha</label>
+                    <button onclick="toggleTension()" id="tensionBtn" class="w-full py-2 px-3 text-xs font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-2 h-[34px]">
+                        <i class="fa-solid fa-bezier-curve text-emerald-600"></i>
+                        <span id="tensionText">Suave</span>
+                    </button>
                 </div>
             </div>
 
@@ -257,34 +292,6 @@
                         <p class="text-xs text-slate-500 mt-0.5">
                             Mostrando todas as linhas dos poços selecionados ao longo do tempo.
                         </p>
-                    </div>
-
-                    <!-- Configurações do Gráfico e Exportação -->
-                    <div class="flex flex-wrap items-center gap-2" data-html2canvas-ignore="true">
-                        
-                        <!-- Seleção de Rótulos -->
-                        <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl text-xs">
-                            <span class="text-slate-500 pl-2 font-medium">Valores:</span>
-                            <select id="labelModeSelect" onchange="updateChart()" class="bg-white font-medium text-slate-700 rounded-lg px-2 py-1 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="all" selected>Exibir Todos</option>
-                                <option value="extremes">Máx / Mín</option>
-                                <option value="none">Ocultar</option>
-                            </select>
-                        </div>
-
-                        <!-- Curvatura -->
-                        <button onclick="toggleTension()" id="tensionBtn" class="px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-bezier-curve text-slate-500"></i>
-                            <span id="tensionText">Suave</span>
-                        </button>
-
-                        <!-- Botões de Relatório -->
-                        <button onclick="exportDashboard('jpeg')" class="px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-image text-emerald-400"></i> JPG
-                        </button>
-                        <button onclick="exportDashboard('pdf')" class="px-3 py-1.5 text-xs font-medium bg-red-600 hover:bg-red-500 text-white rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-file-pdf"></i> PDF
-                        </button>
                     </div>
                 </div>
 
