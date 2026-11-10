@@ -1,369 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-50">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Vazão - Fazenda Oasis</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                        },
-                        oasis: {
-                            50: '#f0f9ff',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .hide-scroll-for-export { overflow: visible !important; }
-        body { background: #f3f8f5; }
-        header { background: linear-gradient(110deg, #064e3b, #065f46) !important; color: #fff !important; border-bottom: 1px solid #047857; box-shadow: 0 4px 18px #064e3b18 !important; }
-        header h1 { color: #fff !important; font-size: 1.35rem !important; }
-        header p { color: #a7f3d0 !important; }
-        header .fa-droplet { color: #6ee7b7 !important; animation: none; }
-        header .backdrop-blur-md, header h1 span { background: #ffffff12 !important; color: #a7f3d0 !important; border-color: #ffffff26 !important; }
-        header .fa-wheat-awn { color: #6ee7b7 !important; }
-        #statusBadge { color: #d1fae5; background: #ffffff0d; border-color: #ffffff26; }
-        header button[onclick="reloadData()"] { background: #059669 !important; padding: 10px 14px; }
-        header button[onclick^="export"] { color: #ecfdf5 !important; }
-        header button[onclick^="export"]:hover { background: #ffffff18 !important; }
-        header button[onclick^="export"] i { color: #a7f3d0 !important; }
-        header .shadow-inner { background: #ffffff0d !important; border-color: #ffffff26 !important; box-shadow: none; }
-        header .w-px { background: #ffffff26 !important; }
-        main { padding-top: 28px !important; }
-        .dashboard-intro h2 { color: #064e3b; font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 650; letter-spacing: -.04em; }
-        .dashboard-intro p { color: #71808a; font-size: 13px; margin-top: 5px; }
-        main section { box-shadow: 0 2px 6px #18352903 !important; border-color: #e3e9e8 !important; border-radius: 16px !important; }
-        #exportableArea { background: #f3f8f5; }
-        #exportableArea section.grid > div { box-shadow: none; border-color: #e3e9e8; min-height: 138px; align-items: flex-start; }
-        #exportableArea section.grid > div > div:last-child { background: #ecfdf5 !important; color: #059669 !important; padding: 10px; }
-        #exportableArea section.grid p[id] { letter-spacing: -.035em; }
-        #exportableArea section.grid p.uppercase { letter-spacing: .04em; font-size: 10px; }
-        input, select { min-height: 40px; background: #fff !important; }
-        #tensionBtn { height: 40px; }
-        button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #28796d; outline-offset: 3px; }
-        #pocoPillsContainer { background: #f8faf9; padding: 10px; gap: 7px; }
-        #pocoPillsContainer button { box-shadow: none; border-radius: 8px; font-weight: 500; min-height: 34px; }
-        #pocoPillsContainer .animate-ping, #statusPing { display: none; }
-        #pocoPillsContainer button[aria-pressed="true"] { background: #eef4f1 !important; border-color: #cfdfd7 !important; color: #365c50 !important; }
-        #pocoPillsContainer button[aria-pressed="true"] > span:last-child { background: transparent !important; color: #527b68 !important; }
-        #canvasWrapper { height: 440px; min-height: 320px; }
-        footer { background: transparent !important; }
-        @media (max-width: 640px) { header { position: static !important; } #canvasWrapper { height: 360px; } main section { padding: 16px !important; } }
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-    </style>
-</head>
-<body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
-
-    <header class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white shadow-lg sticky top-0 z-30">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2.5 bg-emerald-500/20 border border-emerald-400/30 rounded-xl backdrop-blur-md">
-                        <i class="fa-solid fa-droplet text-2xl text-emerald-400 animate-pulse"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                            Controle de Vazão
-                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">L/H</span>
-                        </h1>
-                        <p class="text-emerald-200/80 text-sm font-medium flex items-center gap-1.5">
-                            <i class="fa-solid fa-wheat-awn text-amber-400 text-xs"></i>
-                            Fazenda Oasis
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2">
-                    <div id="statusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs font-medium text-slate-300">
-                        <span class="relative flex h-2 w-2">
-                          <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span id="statusDot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                        </span>
-                        <span id="statusText">Conectando...</span>
-                    </div>
-
-                    <button onclick="reloadData()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition shadow-sm active:scale-95">
-                        <i id="refreshIcon" class="fa-solid fa-rotate-right"></i>
-                        <span>Atualizar Dados</span>
-                    </button>
-
-                    <div class="flex items-center gap-1 p-1 bg-slate-800/60 rounded-xl border border-slate-700/60 ml-1 shadow-inner">
-                        <button onclick="exportFilteredDataCSV()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar CSV">
-                            <i class="fa-solid fa-file-csv text-emerald-400"></i>
-                            <span class="hidden sm:inline">CSV</span>
-                        </button>
-                        <div class="w-px h-4 bg-slate-600"></div>
-                        <button onclick="exportDashboard('jpeg')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar Gráfico JPG">
-                            <i class="fa-solid fa-image text-emerald-400"></i>
-                            <span class="hidden sm:inline">JPG</span>
-                        </button>
-                        <div class="w-px h-4 bg-slate-600"></div>
-                        <button onclick="exportDashboard('pdf')" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 font-medium text-xs transition active:scale-95" title="Exportar Relatório PDF">
-                            <i class="fa-solid fa-file-pdf text-red-400"></i>
-                            <span class="hidden sm:inline">PDF</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-<div class="dashboard-intro"><h2>Visão geral dos poços</h2><p>Acompanhe as medições e compare a vazão ao longo do tempo.</p></div>
-        <!-- Controls / Filters Card -->
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 class="text-sm font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-emerald-600"></i>
-                    Filtros de Análise
-                </h2>
-                <div class="flex items-center gap-3">
-                    <button onclick="setQuickDateRange('all')" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition">Tudo</button>
-                    <span class="text-slate-300">|</span>
-                    <button onclick="setQuickDateRange('30days')" class="text-xs text-slate-500 hover:text-emerald-600 font-medium transition">Últimos 30 Dias</button>
-                    <span class="text-slate-300">|</span>
-                    <button onclick="resetFilters()" class="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-rotate-left"></i> Limpar
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-                <div class="space-y-1">
-                    <label for="startDate" class="block text-xs font-medium text-slate-600">Data Início</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-regular fa-calendar text-xs"></i>
-                        </div>
-                        <input type="date" id="startDate" onchange="applyFilters()"
-                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="endDate" class="block text-xs font-medium text-slate-600">Data Fim</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-regular fa-calendar-check text-xs"></i>
-                        </div>
-                        <input type="date" id="endDate" onchange="applyFilters()"
-                               class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="monthSelect" class="block text-xs font-medium text-slate-600">Mês</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-regular fa-calendar-days text-xs"></i>
-                        </div>
-                        <select id="monthSelect" onchange="applyFilters()"
-                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
-                            <option value="">Todos os Meses</option>
-                            <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
-                            <option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option>
-                            <option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option>
-                            <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="yearSelect" class="block text-xs font-medium text-slate-600">Ano</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-                        </div>
-                        <select id="yearSelect" onchange="applyFilters()"
-                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
-                            <option value="">Todos os Anos</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label for="labelModeSelect" class="block text-xs font-medium text-slate-600">Rótulos (Gráfico)</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-tags text-xs"></i>
-                        </div>
-                        <select id="labelModeSelect" onchange="updateChart()"
-                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
-                            <option value="all">Todos (sem sobreposição)</option>
-                            <option value="extremes">Máx / Mín</option>
-                            <option value="none" selected>Apenas ao passar o mouse</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="block text-xs font-medium text-slate-600">Estilo da Linha</label>
-                    <button onclick="toggleTension()" id="tensionBtn" class="w-full py-2 px-3 text-xs font-medium bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl transition flex items-center justify-center gap-2 h-[34px]">
-                        <i class="fa-solid fa-bezier-curve text-emerald-600"></i>
-                        <span id="tensionText">Suave</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-100 space-y-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bore-hole text-emerald-600"></i>
-                        Seleção de Poços (<span id="selectedPocosCount">0</span> ativos):
-                    </label>
-                    <div class="flex items-center space-x-3 text-xs">
-                        <button onclick="selectAllPocos(true)" class="text-emerald-600 hover:underline font-medium">Selecionar Todos</button>
-                        <span class="text-slate-300">|</span>
-                        <button onclick="selectAllPocos(false)" class="text-slate-500 hover:underline">Desmarcar Todos</button>
-                    </div>
-                </div>
-                <div id="pocoPillsContainer" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto custom-scrollbar p-1 bg-slate-50/50 rounded-xl border border-slate-100">
-                    <span class="text-xs text-slate-400 animate-pulse p-2">Carregando poços da planilha...</span>
-                </div>
-            </div>
-        </section>
-
-        <div id="exportableArea" class="space-y-6 bg-slate-50">
-
-            <!-- KPI Cards -->
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
-                    <div class="space-y-1 z-10">
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Volume Total Filtrado</p>
-                        <p id="kpiTotalVazao" class="text-2xl font-bold text-slate-800">0 L</p>
-                        <p id="kpiRecordCount" class="text-xs text-slate-500">0 registros encontrados</p>
-                    </div>
-                    <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-                        <i class="fa-solid fa-faucet-drip text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
-                    <div class="space-y-1 z-10">
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Média da Vazão</p>
-                        <p id="kpiMediaVazao" class="text-2xl font-bold text-slate-800">0 L/H</p>
-                        <p class="text-xs text-slate-500">Por ponto de medição</p>
-                    </div>
-                    <div class="p-3 bg-sky-50 rounded-xl text-sky-600">
-                        <i class="fa-solid fa-gauge-high text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
-                    <div class="space-y-1 z-10">
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Maior Vazão Medida</p>
-                        <p id="kpiMaxVazao" class="text-2xl font-bold text-slate-800">0 L/H</p>
-                        <p id="kpiMaxPoco" class="text-xs text-slate-500 truncate max-w-[150px]">Nenhum dado</p>
-                    </div>
-                    <div class="p-3 bg-indigo-50 rounded-xl text-indigo-600">
-                        <i class="fa-solid fa-circle-arrow-up text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
-                    <div class="space-y-1 z-10">
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Poço Maior Volume</p>
-                        <p id="kpiTopPoco" class="text-xl font-bold text-slate-800 truncate max-w-[160px]">-</p>
-                        <p id="kpiTopPocoVal" class="text-xs text-slate-500">0 L Total</p>
-                    </div>
-                    <div class="p-3 bg-amber-50 rounded-xl text-amber-600">
-                        <i class="fa-solid fa-award text-xl"></i>
-                    </div>
-                </div>
-            </section>
-
-            <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4 relative">
-
-                <!-- Overlay de Carregamento para Exportação -->
-                <div id="exportLoadingOverlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
-                    <div class="flex flex-col items-center text-emerald-600 font-medium">
-                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i>
-                        <span>Gerando Relatório Completo...</span>
-                    </div>
-                </div>
-
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-line text-emerald-600"></i>
-                            Histórico de vazão
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">
-                            Compare os poços selecionados. Passe o mouse sobre as linhas para consultar os valores em L/H.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Container do Gráfico -->
-                <div class="relative w-full border border-slate-100 rounded-2xl bg-slate-50/50 p-2 overflow-hidden">
-                    <div id="chartScrollContainer" class="w-full">
-                        <div id="canvasWrapper" class="relative min-h-[480px] h-[550px] w-full transition-all duration-300">
-                            <canvas id="vazaoChart" class="w-full h-full"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
-                    <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-info text-emerald-600"></i>
-                        <span>Clique em um poço na legenda acima do gráfico para ocultar/exibir sua linha individualmente.</span>
-                    </span>
-                    <span id="chartPointsCount" class="font-semibold text-slate-700">0 medições no gráfico</span>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <span>&copy; 2026 Fazenda Oasis - Controle do Fluxo de Poços</span>
-            <span class="flex items-center gap-1 text-slate-400">
-                <i class="fa-solid fa-database text-emerald-500"></i> Planilha Conectada
-            </span>
-        </div>
-    </footer>
-
-    <!-- Toast UI element -->
-    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <script>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel de Vazão • Fazenda Oasis</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f6f3;color:#183e30;font:14px Inter,Arial,sans-serif}button,input{font:inherit}button{cursor:pointer;border:1px solid #d7e4dc;background:white;color:#285c46;border-radius:9px;padding:10px 14px;font-weight:600}button:hover{background:#edf6f0}button:disabled{opacity:.55;cursor:wait}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #66b38c;outline-offset:3px}header{background:#064e3b;color:white;padding:25px max(24px,calc((100vw - 1440px)/2))}nav{display:flex;align-items:center;justify-content:space-between;gap:20px}header h1{font-size:24px;margin:5px 0;letter-spacing:-.7px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.7}.header-actions{display:flex;gap:8px;flex-wrap:wrap}header button{background:#ffffff0d;color:white;border-color:#ffffff38}header button:hover{background:#ffffff25}.primary{background:#fff;color:#065f46}header p{margin:8px 0 0;color:#b4d8c5;font-size:12px}.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ee7b7;margin-right:7px}main{max-width:1488px;margin:auto;padding:28px 24px 50px}.intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.intro h2{font-size:25px;letter-spacing:-.8px;margin:0 0 6px}.muted{color:#76877e;font-size:12px}.card{background:white;border:1px solid #dfe9e2;border-radius:16px;padding:24px;box-shadow:0 3px 12px #183e3003}.filter-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.filter-top h3{margin:0;font-size:14px}.link{padding:0;border:0;background:none;font-size:12px}.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:14px}details{position:relative}summary{list-style:none;border:1px solid #dbe5df;border-radius:10px;padding:13px;background:#f9fbfa;cursor:pointer;display:flex;justify-content:space-between;gap:8px}summary::-webkit-details-marker{display:none}summary:after{content:'⌄';color:#59816b}.filter-label{display:block;font-size:11px;font-weight:600;margin-bottom:8px;color:#6f8378}.options{position:absolute;top:100%;margin-top:6px;left:0;right:0;min-width:190px;background:white;border:1px solid #dbe5df;box-shadow:0 10px 30px #183e3020;border-radius:10px;padding:10px;z-index:20;max-height:290px;overflow:auto}.options label{display:flex;align-items:center;gap:9px;padding:8px;border-radius:6px;font-size:12px;cursor:pointer}.options label:hover{background:#f1f7f3}input[type=checkbox]{accent-color:#168056;width:15px;height:15px}.option-actions{display:flex;justify-content:space-between;border-bottom:1px solid #edf2ee;padding:2px 3px 8px}.option-actions button{font-size:11px;border:0;padding:4px}.filter-note{margin:15px 0 0;font-size:11px;color:#7e8e84}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}.kpi{padding:20px}.kpi span{font-size:11px;color:#72877b}.kpi strong{display:block;font-size:25px;letter-spacing:-1px;margin:12px 0 5px;color:#125639}.kpi small{font-size:11px;color:#819087}.chart-card{margin-top:20px;padding:24px}.chart-head{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:18px}.chart-title{display:flex;gap:12px;align-items:start}.number{background:#edf6f0;color:#388059;border-radius:8px;padding:9px;font-size:12px;font-weight:700}.chart-head h3{font-size:17px;margin:0 0 6px;letter-spacing:-.3px}.chart-head p{margin:0;color:#7e8e84;font-size:12px;line-height:1.6}.unit{background:#f1f6f3;padding:6px 9px;border-radius:6px;font-size:10px;white-space:nowrap;color:#63816d}.plot-scroll{overflow-x:auto;padding-bottom:8px}.plot{height:420px;position:relative;min-width:100%}.chart-foot{font-size:11px;color:#8a998f;border-top:1px solid #edf2ee;padding-top:13px;margin-top:12px}.report-heading{display:none}.empty{padding:30px;text-align:center;color:#819087}.hidden{display:none!important}footer{text-align:center;font-size:11px;color:#8a9a8f;padding:22px}#toastContainer{position:fixed;bottom:20px;right:20px;z-index:80}#toastContainer>div{padding:15px;background:#164e39;color:white;border-radius:10px;margin-top:8px;max-width:350px}.exporting .report-heading{display:block;margin:0 0 20px}.exporting{padding:24px;background:#f2f6f3}.exporting .plot-scroll{overflow:visible}.exporting .plot{min-width:0!important;width:100%!important}.report-meta{font-size:12px;color:#6c8274;line-height:1.6}
+@media(max-width:800px){.filters,.kpis{grid-template-columns:1fr 1fr}nav{align-items:start;flex-direction:column}.card{padding:18px}main{padding:20px 14px}.chart-head{flex-direction:column}.plot{height:360px}.intro h2{font-size:22px}.kpi strong{font-size:22px}}@media(max-width:420px){.filters{grid-template-columns:1fr}.kpis{gap:10px}.kpi{padding:14px}.kpi strong{font-size:20px}header{padding:22px}.unit{display:none}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+/* Relatórios no estilo das referências */
+.chart-card{background:#f3f6fa;border:1px solid #e5eaf0;box-shadow:none;border-radius:8px;padding:26px 22px 16px}
+.chart-head h3{font-size:15px;letter-spacing:.35px;color:#1f2c3a;font-weight:800}
+.chart-head p{font-size:11px;color:#53616e}
+.chart-head{margin-bottom:12px}.number,.chart-head .unit{display:none}
+.plot-scroll{background:#fff;border-radius:0;padding-top:4px}.plot{height:520px}
+.chart-foot{font-size:10px;color:#7b8794;border:0;margin-top:10px;padding-top:4px}
+@media(min-width:1600px){main{max-width:1800px}}
+@media(max-width:800px){.chart-head h3{font-size:13px}.plot{height:440px}.chart-card{padding:18px 10px}}
+</style></head><body>
+<header><nav><div><div class="eyebrow">Fazenda Oasis / Gestão hídrica</div><h1>Controle de Vazão</h1><p><span class="status-dot" id="statusDot"></span><span id="statusText" role="status">Conectando à planilha...</span><span id="statusPing" hidden></span></p></div><div class="header-actions"><button onclick="reloadData()"><span id="refreshIcon"></span>↻ Atualizar</button><button class="export-btn" onclick="exportDashboard('jpeg')">↓ JPEG</button><button class="export-btn primary" onclick="exportDashboard('pdf')">↓ Exportar PDF</button></div></nav></header>
+<main><div class="intro"><div><h2>Análise de vazão</h2><span class="muted">Uma visão semanal e mensal de todos os poços.</span></div></div>
+<section class="card"><div class="filter-top"><h3>Filtrar medições</h3><button class="link" onclick="resetFilters()">Limpar filtros</button></div><div class="filters" id="filters"></div><p class="filter-note">Selecione uma ou mais opções em cada filtro. Sem seleção, todas as opções são consideradas. Semanas de segunda a domingo (padrão ISO).</p></section>
+<div id="exportableArea"><div class="report-heading"><h2>Fazenda Oasis · Relatório de vazão</h2><p class="report-meta" id="reportMeta"></p></div>
+<section class="kpis"><div class="card kpi"><span>Vazão média</span><strong id="avg">—</strong><small>Litros por hora · medições filtradas</small></div><div class="card kpi"><span>Maior vazão</span><strong id="max">—</strong><small id="maxWell">Sem medições</small></div><div class="card kpi"><span>Poços no período</span><strong id="wells">0</strong><small>Com medições disponíveis</small></div><div class="card kpi"><span>Medições analisadas</span><strong id="records">0</strong><small id="dateRange">Aguardando dados</small></div></section>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">01</span><div><h3>FAZENDA OÁSIS | RELATÓRIO SEMANAL DE VAZÕES</h3><p>Semanas ISO · Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="weeklyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="weeklyPlot"><canvas id="weeklyChart" role="img" aria-label="Gráfico de linhas de vazão média semanal por poço"></canvas></div></div><div class="chart-foot">Cada ponto representa a média das medições da semana. Passe o mouse para consultar os detalhes.</div></section>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>FAZENDA OÁSIS | RELATÓRIO MENSAL DE VAZÕES</h3><p>Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="monthlyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="monthlyPlot"><canvas id="monthlyChart" role="img" aria-label="Gráfico de linhas de vazão média mensal por poço"></canvas></div></div><div class="chart-foot">Os filtros se aplicam aos dois gráficos. Clique na legenda para ocultar ou exibir um poço.</div></section></div></main><footer>Fazenda Oasis · Monitoramento de poços · L/H</footer><div id="toastContainer" aria-live="polite"></div><script>
         const PUBLISHED_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pub?output=csv';
         const PUBLISHED_SHEET_HTML_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pubhtml';
 
@@ -374,7 +32,7 @@
         let isSmoothCurve = true;
 
         // Tons sóbrios; os padrões de traço também distinguem as séries.
-        const WELL_COLORS = ['#276d62', '#536d80', '#8a9d92', '#364a56', '#739c95', '#78838f'];
+        const WELL_COLORS = ['#28628e','#b7463e','#347560','#b38242','#7850a0','#b16a39','#a55479','#438b98','#77776c','#4d8062','#a74c59','#777f48','#71628d','#ac8a50'];
 
         function normalizeWellName(value) {
             const name = String(value).trim().replace(/\s+/g, ' ');
@@ -605,412 +263,119 @@
         }
 
         function updateStatus(text, state) {
-            document.getElementById('statusText').innerText = text;
-            const dot = document.getElementById('statusDot');
-            const ping = document.getElementById('statusPing');
-            if (state === 'success') { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-emerald-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"; }
-            else if (state === 'warning') { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-amber-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"; }
-            else { dot.className = "relative inline-flex rounded-full h-2 w-2 bg-sky-500"; ping.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"; }
-        }
+ document.getElementById('statusText').innerText=text;
+ const dot=document.getElementById('statusDot');dot.className='status-dot';dot.style.background=state==='warning'?'#fbbf24':state==='success'?'#6ee7b7':'#cbd5e1';
+}
 
-        function initFiltersUI() {
-            const yearSelect = document.getElementById('yearSelect');
-            const years = Array.from(new Set(rawData.map(r => r.ano))).sort((a, b) => b - a);
-            yearSelect.innerHTML = '<option value="">Todos os Anos</option>';
-            years.forEach(y => yearSelect.innerHTML += `<option value="${y}">${y}</option>`);
 
-            const pocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            selectedPocos = new Set(pocos);
-            renderPocoPills(pocos);
-
-            if (rawData.length > 0) {
-                document.getElementById('startDate').value = rawData[0].dateStr;
-                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
-            }
-        }
-
-        function renderPocoPills(pocosList) {
-            const container = document.getElementById('pocoPillsContainer');
-            container.innerHTML = '';
-
-            const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-            pocosList.forEach((poco) => {
-                const isChecked = selectedPocos.has(poco);
-                const gIdx = allRawPocos.indexOf(poco);
-                const color = getWellColor(gIdx);
-
-                const btn = document.createElement('button');
-                btn.type = 'button'; btn.setAttribute('aria-pressed', String(isChecked));
-                btn.onclick = () => {
-                    isChecked ? selectedPocos.delete(poco) : selectedPocos.add(poco);
-                    renderPocoPills(pocosList);
-                    applyFilters();
-                };
-
-                if (isChecked) {
-                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm border transform active:scale-95 hover:brightness-105`;
-                    btn.style.backgroundColor = `${color}18`; // Preenchimento suave com a cor do poço
-                    btn.style.borderColor = color;
-                    btn.style.color = '#0f172a';
-                    btn.innerHTML = `
-                        <span class="relative flex h-3 w-3 items-center justify-center flex-shrink-0">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40" style="background-color: ${color}"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5" style="background-color: ${color}"></span>
-                        </span>
-                        <span class="truncate max-w-[160px] font-semibold">${poco}</span>
-                        <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] text-white font-bold" style="background-color: ${color}">
-                            <i class="fa-solid fa-check"></i>
-                        </span>
-                    `;
-                } else {
-                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition border bg-slate-100/80 text-slate-400 border-slate-200 hover:bg-slate-200/60 opacity-60`;
-                    btn.innerHTML = `
-                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${color}; opacity: 0.5;"></span>
-                        <span class="truncate max-w-[160px] line-through">${poco}</span>
-                        <i class="fa-solid fa-plus text-slate-400 text-[10px]"></i>
-                    `;
-                }
-                container.appendChild(btn);
-            });
-
-            document.getElementById('selectedPocosCount').innerText = `${selectedPocos.size}/${pocosList.length}`;
-        }
-
-        function selectAllPocos(select) {
-            const all = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            select ? selectedPocos = new Set(all) : selectedPocos.clear();
-            renderPocoPills(all);
-            applyFilters();
-        }
-
-        function setQuickDateRange(mode) {
-            if (!rawData.length) return;
-            const end = rawData[rawData.length - 1].dateObj;
-            if (mode === 'all') {
-                document.getElementById('startDate').value = rawData[0].dateStr;
-                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
-            } else if (mode === '30days') {
-                const start = new Date(end);
-                start.setDate(start.getDate() - 30);
-                document.getElementById('startDate').value = formatDateISO(start);
-                document.getElementById('endDate').value = formatDateISO(end);
-            }
-            applyFilters();
-        }
-
-        function resetFilters() {
-            document.getElementById('monthSelect').value = '';
-            document.getElementById('yearSelect').value = '';
-            if (rawData.length > 0) {
-                document.getElementById('startDate').value = rawData[0].dateStr;
-                document.getElementById('endDate').value = rawData[rawData.length - 1].dateStr;
-            }
-            selectAllPocos(true);
-        }
-
-        function applyFilters() {
-            const start = document.getElementById('startDate').value;
-            const end = document.getElementById('endDate').value;
-            const month = document.getElementById('monthSelect').value;
-            const year = document.getElementById('yearSelect').value;
-
-            filteredData = rawData.filter(item => {
-                if (!selectedPocos.has(item.poco)) return false;
-                if (start && item.dateStr < start) return false;
-                if (end && item.dateStr > end) return false;
-                if (month && item.mes !== parseInt(month)) return false;
-                if (year && item.ano !== parseInt(year)) return false;
-                return true;
-            });
-
-            updateKPIs();
-            updateChart();
-        }
-
-        function updateKPIs() {
-            const total = filteredData.reduce((s, i) => s + i.vazao, 0);
-            const count = filteredData.length;
-            const avg = count > 0 ? total / count : 0;
-            let maxItem = { vazao: 0, poco: '-', dateDisplay: '-' };
-            const volByPoco = {};
-
-            filteredData.forEach(item => {
-                if (item.vazao > maxItem.vazao) maxItem = item;
-                volByPoco[item.poco] = (volByPoco[item.poco] || 0) + item.vazao;
-            });
-
-            let topName = '-', topVol = 0;
-            Object.keys(volByPoco).forEach(p => { if (volByPoco[p] > topVol) { topVol = volByPoco[p]; topName = p; } });
-
-            document.getElementById('kpiTotalVazao').innerText = total.toLocaleString('pt-BR') + ' L';
-            document.getElementById('kpiRecordCount').innerText = `${count} medições no período`;
-            document.getElementById('kpiMediaVazao').innerText = Math.round(avg).toLocaleString('pt-BR') + ' L/H';
-            document.getElementById('kpiMaxVazao').innerText = maxItem.vazao.toLocaleString('pt-BR') + ' L/H';
-            document.getElementById('kpiMaxPoco').innerText = maxItem.poco !== '-' ? `${maxItem.poco} (${maxItem.dateDisplay})` : 'Nenhum dado';
-            document.getElementById('kpiTopPoco').innerText = topName;
-            document.getElementById('kpiTopPocoVal').innerText = topVol > 0 ? topVol.toLocaleString('pt-BR') + ' L Total' : '0 L Total';
-        }
-
-        function updateChart() {
-            const ctx = document.getElementById('vazaoChart').getContext('2d');
-            const labelMode = document.getElementById('labelModeSelect').value;
-
-            // Ordenar datas únicas
-            const uniqueDates = Array.from(new Set(filteredData.map(d => d.dateDisplay))).sort((a, b) => {
-                const p1 = a.split('/'), p2 = b.split('/');
-                return new Date(p1[2], p1[1]-1, p1[0]) - new Date(p2[2], p2[1]-1, p2[0]);
-            });
-
-            const activePocos = Array.from(new Set(filteredData.map(d => d.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-            const pocoMap = {};
-            activePocos.forEach(p => pocoMap[p] = {});
-
-            filteredData.forEach(item => {
-                if (!pocoMap[item.poco][item.dateDisplay]) {
-                    pocoMap[item.poco][item.dateDisplay] = [];
-                }
-                pocoMap[item.poco][item.dateDisplay].push(item.vazao);
-            });
-
-            const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
-            // Construir Datasets para TODOS os Poços Ativos
-            const datasets = activePocos.map((pocoName, sIdx) => {
-                const gIdx = allRawPocos.indexOf(pocoName);
-                const color = getWellColor(gIdx >= 0 ? gIdx : sIdx);
-
-                const dataPts = uniqueDates.map(d => {
-                    const arr = pocoMap[pocoName][d];
-                    if (!arr || arr.length === 0) return null;
-                    const sum = arr.reduce((acc, v) => acc + v, 0);
-                    return Math.round(sum / arr.length);
-                });
-
-                const validVals = dataPts.filter(v => v !== null);
-                const minVal = validVals.length ? Math.min(...validVals) : 0;
-                const maxVal = validVals.length ? Math.max(...validVals) : 0;
-
-                return {
-                    label: pocoName,
-                    data: dataPts,
-                    borderColor: color,
-                    backgroundColor: color,
-                    borderWidth: 1.8, borderDash: [[], [7, 3], [2, 3], [9, 3, 2, 3]][Math.floor((gIdx >= 0 ? gIdx : sIdx) / WELL_COLORS.length) % 4],
-                    tension: isSmoothCurve ? 0.35 : 0,
-                    pointRadius: activePocos.length <= 3 && uniqueDates.length <= 45 ? 2.5 : 0,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: color,
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 1.5,
-                    spanGaps: true,
-                    clip: 8,
-
-                    datalabels: {
-                        display: function(context) {
-                            if (labelMode === 'none') return false;
-                            const val = context.dataset.data[context.dataIndex];
-                            if (val === null || val === undefined) return false;
-                            if (labelMode === 'extremes') return val === maxVal || val === minVal ? 'auto' : false;
-                            return 'auto'; // Omitir etiquetas que colidem com outras.
-                        },
-                        clamp: true,
-                        formatter: v => v !== null ? v.toLocaleString('pt-BR') : '',
-                        align: function(context) {
-                            const val = context.dataset.data[context.dataIndex];
-                            if (val === maxVal) return 'top';
-                            if (val === minVal) return 'bottom';
-                            return (context.dataIndex + context.datasetIndex) % 2 === 0 ? 'top' : 'bottom';
-                        },
-                        offset: 6,
-                        font: { family: 'Inter', size: 9, weight: 'bold' },
-                        backgroundColor: color, // Preenchimento da etiqueta com a cor própria do poço
-                        color: '#ffffff', // Texto em branco contrastante
-                        borderColor: '#ffffff',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                        padding: { top: 3, bottom: 3, left: 6, right: 6 }
-                    }
-                };
-            });
-
-            if (chartInstance) chartInstance.destroy();
-
-            const canvasWrapper = document.getElementById('canvasWrapper');
-            canvasWrapper.style.minWidth = '100%'; // Garante que ocupará 100% sem barra de rolagem
-
-            document.getElementById('chartPointsCount').innerText = `${uniqueDates.length} datas | ${activePocos.length} poços e ${filteredData.length} pontos no gráfico`;
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels: uniqueDates, datasets: datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: { top: 12, right: 16, bottom: 8, left: 4 }
-                    },
-                    interaction: { mode: 'nearest', axis: 'xy', intersect: false },
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                usePointStyle: true,
-                                boxWidth: 18, boxHeight: 5, pointStyle: 'line',
-                                font: { family: 'Inter', size: 11, weight: '500' },
-                                padding: 15
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(15,23,42,0.95)',
-                            titleFont: { family: 'Inter', size: 12, weight: 'bold' },
-                            bodyFont: { family: 'Inter', size: 11 },
-                            padding: 12,
-                            cornerRadius: 10,
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) label += ': ';
-                                    if (context.parsed.y !== null) label += context.parsed.y.toLocaleString('pt-BR') + ' L/H';
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { color: '#f1f5f9' },
-                            ticks: {
-                                font: { size: 10 },
-                                color: '#64748b',
-                                autoSkip: true, maxTicksLimit: 10,
-                                maxRotation: 0,
-                                minRotation: 0,
-                                callback: function(value) {
-                                    const label = this.getLabelForValue(value);
-                                    // Corta os 5 primeiros caracteres para manter apenas DD/MM (ex: 21/09)
-                                    return label ? label.substring(0, 5) : label;
-                                }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true, grace: '5%', // Margem superior discreta para a curva
-                            grid: { color: '#f1f5f9' },
-                            ticks: {
-                                maxTicksLimit: 6, font: { size: 11 },
-                                color: '#64748b',
-                                callback: v => v.toLocaleString('pt-BR') + ' L/H'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function toggleTension() {
-            isSmoothCurve = !isSmoothCurve;
-            document.getElementById('tensionText').innerText = isSmoothCurve ? 'Suave' : 'Reta';
-            updateChart();
-        }
-
-        function reloadData() { loadDataFromSheet(); }
-
-        function exportFilteredDataCSV() {
-            if (!filteredData.length) return showToast('Sem dados para exportar.', 'error');
-            const csv = ['Data,Ano,Semana,Poço,Vazão (L/H)'].concat(filteredData.map(r => `"${r.dateDisplay}","${r.ano}","${r.semana}","${r.poco}","${r.vazao}"`)).join('\n');
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `Vazao_Fazenda_Oasis_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            showToast('Arquivo CSV baixado.', 'success');
-        }
-
-        async function prepareForExport() {
-            document.getElementById('exportLoadingOverlay').classList.remove('hidden');
-            const scrollContainer = document.getElementById('chartScrollContainer');
-            const wrapper = document.getElementById('canvasWrapper');
-
-            const originalOverflow = scrollContainer.style.overflowX;
-            const originalWidth = wrapper.style.minWidth;
-
-            scrollContainer.style.overflowX = 'visible';
-            scrollContainer.classList.add('hide-scroll-for-export');
-            wrapper.style.minWidth = '100%';
-
-            if (chartInstance) chartInstance.resize();
-            await new Promise(r => setTimeout(r, 500));
-
-            return { scrollContainer, wrapper, originalOverflow, originalWidth };
-        }
-
-        async function restoreAfterExport(state) {
-            state.scrollContainer.style.overflowX = state.originalOverflow;
-            state.scrollContainer.classList.remove('hide-scroll-for-export');
-            state.wrapper.style.minWidth = state.originalWidth;
-            if (chartInstance) chartInstance.resize();
-            document.getElementById('exportLoadingOverlay').classList.add('hidden');
-        }
-
-        async function exportDashboard(format) {
-            if (typeof html2canvas === 'undefined') {
-                showToast("Aguarde o carregamento do gerador de imagem.", "error");
-                return;
-            }
-
-            const exportArea = document.getElementById('exportableArea');
-            const originalState = await prepareForExport();
-
-            try {
-                const canvas = await html2canvas(exportArea, {
-                    scale: 2,
-                    backgroundColor: '#f8fafc',
-                    useCORS: true,
-                    logging: false
-                });
-
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const dateStr = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-
-                if (format === 'jpeg') {
-                    const link = document.createElement('a');
-                    link.download = `Relatorio_Vazao_Oasis_${dateStr}.jpg`;
-                    link.href = imgData;
-                    link.click();
-                    showToast('Relatório em JPG baixado.', 'success');
-                }
-                else if (format === 'pdf') {
-                    if (!window.jspdf) throw new Error("jsPDF indisponível");
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('landscape', 'mm', 'a4');
-
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const margin = 10;
-                    const maxDrawWidth = pdfWidth - (margin * 2);
-                    const imgProps = pdf.getImageProperties(imgData);
-                    const imgRatio = imgProps.width / imgProps.height;
-                    const drawWidth = maxDrawWidth;
-                    const drawHeight = maxDrawWidth / imgRatio;
-
-                    pdf.setFontSize(16);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text("Relatório Geral de Vazão - Fazenda Oasis", margin, margin + 5);
-
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(100, 116, 139);
-                    pdf.text(`Emissão: ${new Date().toLocaleString('pt-BR')} | Dados consolidados`, margin, margin + 11);
-
-                    pdf.addImage(imgData, 'JPEG', margin, margin + 16, drawWidth, drawHeight);
-                    pdf.save(`Relatorio_Vazao_Oasis_${dateStr}.pdf`);
-                    showToast('Relatório em PDF gerado.', 'success');
-                }
-            } catch (err) {
-                console.error("Erro ao exportar:", err);
-                showToast("Ocorreu um erro ao gerar o relatório.", "error");
-            } finally {
-                await restoreAfterExport(originalState);
-            }
-        }
-    </script>
-</body>
-</html>
+const selection = { poco: new Set(), semana: new Set(), mes: new Set(), ano: new Set() };
+const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let monthlyInstance = null;
+function weekInfo(date) {
+ const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+ d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+ const year = d.getUTCFullYear();
+ const week = Math.ceil((((d - new Date(Date.UTC(year,0,1))) / 86400000) + 1) / 7);
+ return { year, week, key: year + '-S' + String(week).padStart(2,'0') };
+}
+function initFiltersUI() {
+ rawData.forEach(r => { r.semana = weekInfo(r.dateObj).week; });
+ renderFilters(); applyFilters();
+}
+function renderFilters() {
+ const config = [{key:'poco',label:'Poços',values:[...new Set(rawData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}))},{key:'semana',label:'Semanas',values:[...new Set(rawData.map(r=>String(r.semana)))].sort((a,b)=>a-b)},{key:'mes',label:'Meses',values:[...new Set(rawData.map(r=>String(r.mes)))].sort((a,b)=>a-b)},{key:'ano',label:'Anos',values:[...new Set(rawData.map(r=>String(r.ano)))].sort((a,b)=>b-a)}];
+ const container = document.getElementById('filters'); container.replaceChildren();
+ config.forEach(({key,label,values})=>{
+  const wrap=document.createElement('div'); const title=document.createElement('span'); title.className='filter-label';title.textContent=label;wrap.append(title);
+  const details=document.createElement('details');const summary=document.createElement('summary');summary.id='summary-'+key;details.append(summary);
+  const options=document.createElement('div'); options.className='options';const actions=document.createElement('div');actions.className='option-actions';
+  ['Marcar todos','Limpar'].forEach((text,i)=>{const btn=document.createElement('button');btn.textContent=text;btn.onclick=()=>{selection[key]=new Set(i===0?values:[]);options.querySelectorAll('input').forEach(input=>input.checked=selection[key].has(input.value));applyFilters();};actions.append(btn);});options.append(actions);
+  values.forEach(value=>{const lab=document.createElement('label');const input=document.createElement('input');input.type='checkbox';input.value=value;input.checked=selection[key].has(value);input.onchange=()=>{input.checked?selection[key].add(value):selection[key].delete(value);applyFilters();};lab.append(input,document.createTextNode(key==='mes'?monthNames[Number(value)-1]:key==='semana'?'Semana '+value:value));options.append(lab);});
+  details.append(options);wrap.append(details);container.append(wrap);
+ }); updateSummaries();
+}
+function updateSummaries(){Object.keys(selection).forEach(key=>{const n=selection[key].size;document.getElementById('summary-'+key).textContent=n?n+' selecionado'+(n>1?'s':''):'Todas as opções';});}
+function resetFilters(){Object.values(selection).forEach(s=>s.clear());renderFilters();applyFilters();}
+function applyFilters(){filteredData=rawData.filter(r=>Object.entries(selection).every(([key,set])=>!set.size||set.has(String(r[key])))); updateSummaries();updateKPIs();updateChart();}
+function updateKPIs(){
+ const count=filteredData.length;const total=filteredData.reduce((s,r)=>s+r.vazao,0);const max=filteredData.reduce((a,b)=>!a||b.vazao>a.vazao?b:a,null);
+ document.getElementById('avg').textContent=count?Math.round(total/count).toLocaleString('pt-BR')+' L/H':'—';document.getElementById('max').textContent=max?max.vazao.toLocaleString('pt-BR')+' L/H':'—';document.getElementById('maxWell').textContent=max?max.poco+' · '+max.dateDisplay:'Sem medições';document.getElementById('wells').textContent=new Set(filteredData.map(r=>r.poco)).size;document.getElementById('records').textContent=count.toLocaleString('pt-BR');
+ const sorted=[...filteredData].sort((a,b)=>a.dateObj-b.dateObj);document.getElementById('dateRange').textContent=count?sorted[0].dateDisplay+' a '+sorted[count-1].dateDisplay:'Nenhuma medição no período';
+ document.getElementById('reportMeta').textContent=Object.entries(selection).map(([key,set])=>({poco:'Poços',semana:'Semanas',mes:'Meses',ano:'Anos'}[key])+': '+(set.size?[...set].join(', '):'Todos')).join(' · ')+' | Emissão: '+new Date().toLocaleString('pt-BR');
+}
+function aggregate(period){
+ const groups=new Map();filteredData.forEach(r=>{const w=weekInfo(r.dateObj);const key=period==='week'?w.key:r.ano+'-'+String(r.mes).padStart(2,'0');if(!groups.has(key))groups.set(key,{label:period==='week'?'Sem. '+w.week+' / '+w.year:monthNames[r.mes-1].slice(0,3)+' / '+r.ano,values:new Map()});const values=groups.get(key).values;if(!values.has(r.poco))values.set(r.poco,[]);values.get(r.poco).push(r.vazao);});return [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,g])=>({key,...g}));
+}
+function chartConfig(type, groups, wells, period = 'week') {
+ const allWells = [...new Set(rawData.map(r => r.poco))].sort((a,b) => a.localeCompare(b,'pt-BR',{numeric:true}));
+ return {
+  type: 'line',
+  data: {
+   labels: groups.map(g => period === 'week' ? g.key.replace('-S',' / S') : g.label.toUpperCase()),
+   datasets: wells.map(well => {
+    const idx = allWells.indexOf(well), color = getWellColor(idx);
+    return { label: well, data: groups.map(g => {
+     const values = g.values.get(well);
+     return values ? Math.round(values.reduce((sum,v) => sum+v,0)/values.length) : null;
+    }), borderColor: color, backgroundColor: color, borderWidth: 1.4,
+    borderDash: Math.floor(idx/WELL_COLORS.length)%2 ? [5,3] : [],
+    pointRadius: 2, pointHoverRadius: 5, pointBorderWidth: 0,
+    tension: 0, spanGaps: false, fill: false };
+   })
+  },
+  options: {
+   responsive: true, maintainAspectRatio: false, animation: false,
+   layout: { padding: { top: 16, right: 30, left: 12, bottom: 8 } },
+   interaction: { mode: 'nearest', intersect: false },
+   plugins: {
+    legend: { position: 'top', align: 'center', labels: {
+     usePointStyle: true, pointStyle: 'line', boxWidth: 20, boxHeight: 6,
+     padding: 16, color: '#394b55', font: { size: 10, family: 'Inter' }
+    } },
+    tooltip: { callbacks: { label: c => c.dataset.label+': '+c.parsed.y.toLocaleString('pt-BR')+' L/h' } },
+    datalabels: {
+     display: c => c.dataset.data[c.dataIndex] !== null,
+     anchor: 'center', align: 'top', offset: 3, rotation: 0, clip: false,
+     color: c => c.dataset.borderColor, backgroundColor: '#ffffffed',
+     borderColor: c => c.dataset.borderColor+'60', borderWidth: .5, borderRadius: 0,
+     padding: {top: 1, bottom: 1, left: 2, right: 2},
+     font: { size: 9, weight: '500', family: 'Inter' },
+     formatter: v => v === null ? '' : v.toLocaleString('pt-BR')
+    }
+   },
+   scales: {
+    x: { title: {display: true, text: period === 'week' ? 'SEMANA DO ANO (ISO) / ANO' : 'MÊS DE REFERÊNCIA', color: '#344453', font: {size: 10, weight:'bold'}}, grid: {display:false}, border: {display:false}, ticks: {autoSkip:false, color:'#344453', font:{size:10,weight:'600'}, maxRotation:0} },
+    y: { title: {display:true,text: period === 'week' ? 'VAZÃO MÉDIA SEMANAL (L/h)' : 'VAZÃO MÉDIA MENSAL (L/h)',color:'#344453',font:{size:10,weight:'bold'}},beginAtZero:true,grace:'12%',grid:{color:'#eef1f5',drawTicks:false},border:{display:false},ticks:{maxTicksLimit:8,color:'#7a8692',font:{size:10},callback:v=>v.toLocaleString('pt-BR')} }
+   }
+  }
+ };
+}
+function updateChart(){
+ if(chartInstance)chartInstance.destroy();if(monthlyInstance)monthlyInstance.destroy();
+ const wells=[...new Set(filteredData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));const weekly=aggregate('week'),monthly=aggregate('month');
+ document.getElementById('weeklyEmpty').classList.toggle('hidden',!!filteredData.length);document.getElementById('monthlyEmpty').classList.toggle('hidden',!!filteredData.length);
+ document.getElementById('weeklyPlot').style.width=Math.max(850,weekly.length*82)+'px';document.getElementById('monthlyPlot').style.width=Math.max(850,monthly.length*105)+'px';
+ chartInstance=new Chart(document.getElementById('weeklyChart'),chartConfig('line',weekly,wells));monthlyInstance=new Chart(document.getElementById('monthlyChart'),chartConfig('line',monthly,wells,'month'));
+}
+function reloadData(){loadDataFromSheet();}
+async function exportDashboard(format){
+ if(!filteredData.length){showToast('Selecione um período com medições para exportar.','error');return;}
+ if(typeof html2canvas==='undefined'||(format==='pdf'&&!window.jspdf)){showToast('Aguarde o carregamento das ferramentas de exportação.','error');return;}
+ const area=document.getElementById('exportableArea');const buttons=document.querySelectorAll('.export-btn');buttons.forEach(b=>b.disabled=true);
+ const cards=[...area.querySelectorAll('.chart-card')];const widths=cards.map(c=>c.style.width);
+ try{
+ area.classList.add('exporting');cards.forEach(c=>{const plot=c.querySelector('.plot');c.style.width=Math.max(c.clientWidth,parseFloat(plot.style.width)+60)+'px';});chartInstance.resize();monthlyInstance.resize();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ const date=new Date().toISOString().slice(0,10);const capture=el=>html2canvas(el,{scale:1.5,backgroundColor:'#f2f6f3',useCORS:true,logging:false,windowWidth:Math.max(1600,el.scrollWidth),width:el.scrollWidth});
+ if(format==='jpeg'){
+  const width=Math.max(...cards.map(c=>c.scrollWidth),area.clientWidth);const original=area.style.width;area.style.width=width+'px';
+  try{const canvas=await capture(area);const link=document.createElement('a');link.download='Vazao_Oasis_'+date+'.jpeg';link.href=canvas.toDataURL('image/jpeg',.95);link.click();}finally{area.style.width=original;}
+ }else{
+  const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  for(let i=0;i<cards.length;i++){
+   if(i)pdf.addPage();pdf.setFontSize(16);pdf.setTextColor(6,78,59);pdf.text('Fazenda Oasis - '+(i===0?'Evolucao semanal':'Comparativo mensal'),12,15);pdf.setFontSize(8);pdf.setTextColor(85,110,96);const lines=pdf.splitTextToSize(document.getElementById('reportMeta').textContent,270);pdf.text(lines,12,23);const top=28+lines.length*3;const canvas=await capture(cards[i]);const scale=Math.min(273/canvas.width,(190-top)/canvas.height);pdf.addImage(canvas.toDataURL('image/jpeg',.95),'JPEG',12,top,canvas.width*scale,canvas.height*scale);
+  }pdf.save('Vazao_Oasis_'+date+'.pdf');
+ }showToast('Relatório exportado com sucesso.','success');
+ }catch(err){console.error(err);showToast('Não foi possível exportar. Tente reduzir o período selecionado.','error');}
+ finally{area.classList.remove('exporting');cards.forEach((c,i)=>c.style.width=widths[i]);chartInstance.resize();monthlyInstance.resize();buttons.forEach(b=>b.disabled=false);}
+}
+</script></body></html>
