@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Painel de Vazão • Fazenda Oasis</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f2f6f3;color:#183e30;font:14px Inter,Arial,sans-serif}button,input{font:inherit}button{cursor:pointer;border:1px solid #d7e4dc;background:white;color:#285c46;border-radius:9px;padding:10px 14px;font-weight:600}button:hover{background:#edf6f0}button:disabled{opacity:.55;cursor:wait}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #66b38c;outline-offset:3px}header{background:#064e3b;color:white;padding:25px max(24px,calc((100vw - 1440px)/2))}nav{display:flex;align-items:center;justify-content:space-between;gap:20px}header h1{font-size:24px;margin:5px 0;letter-spacing:-.7px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:.7}.header-actions{display:flex;gap:8px;flex-wrap:wrap}header button{background:#ffffff0d;color:white;border-color:#ffffff38}header button:hover{background:#ffffff25}.primary{background:#fff;color:#065f46}header p{margin:8px 0 0;color:#b4d8c5;font-size:12px}.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ee7b7;margin-right:7px}main{max-width:1488px;margin:auto;padding:28px 24px 50px}.intro{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.intro h2{font-size:25px;letter-spacing:-.8px;margin:0 0 6px}.muted{color:#76877e;font-size:12px}.card{background:white;border:1px solid #dfe9e2;border-radius:16px;padding:24px;box-shadow:0 3px 12px #183e3003}.filter-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.filter-top h3{margin:0;font-size:14px}.link{padding:0;border:0;background:none;font-size:12px}.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:14px}details{position:relative}summary{list-style:none;border:1px solid #dbe5df;border-radius:10px;padding:13px;background:#f9fbfa;cursor:pointer;display:flex;justify-content:space-between;gap:8px}summary::-webkit-details-marker{display:none}summary:after{content:'⌄';color:#59816b}.filter-label{display:block;font-size:11px;font-weight:600;margin-bottom:8px;color:#6f8378}.options{position:absolute;top:100%;margin-top:6px;left:0;right:0;min-width:190px;background:white;border:1px solid #dbe5df;box-shadow:0 10px 30px #183e3020;border-radius:10px;padding:10px;z-index:20;max-height:290px;overflow:auto}.options label{display:flex;align-items:center;gap:9px;padding:8px;border-radius:6px;font-size:12px;cursor:pointer}.options label:hover{background:#f1f7f3}input[type=checkbox]{accent-color:#168056;width:15px;height:15px}.option-actions{display:flex;justify-content:space-between;border-bottom:1px solid #edf2ee;padding:2px 3px 8px}.option-actions button{font-size:11px;border:0;padding:4px}.filter-note{margin:15px 0 0;font-size:11px;color:#7e8e84}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}.kpi{padding:20px}.kpi span{font-size:11px;color:#72877b}.kpi strong{display:block;font-size:25px;letter-spacing:-1px;margin:12px 0 5px;color:#125639}.kpi small{font-size:11px;color:#819087}.chart-card{margin-top:20px;padding:24px}.chart-head{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:18px}.chart-title{display:flex;gap:12px;align-items:start}.number{background:#edf6f0;color:#388059;border-radius:8px;padding:9px;font-size:12px;font-weight:700}.chart-head h3{font-size:17px;margin:0 0 6px;letter-spacing:-.3px}.chart-head p{margin:0;color:#7e8e84;font-size:12px;line-height:1.6}.unit{background:#f1f6f3;padding:6px 9px;border-radius:6px;font-size:10px;white-space:nowrap;color:#63816d}.plot-scroll{overflow-x:auto;padding-bottom:8px}.plot{height:420px;position:relative;min-width:100%}.chart-foot{font-size:11px;color:#8a998f;border-top:1px solid #edf2ee;padding-top:13px;margin-top:12px}.report-heading{display:none}.empty{padding:30px;text-align:center;color:#819087}.hidden{display:none!important}footer{text-align:center;font-size:11px;color:#8a9a8f;padding:22px}#toastContainer{position:fixed;bottom:20px;right:20px;z-index:80}#toastContainer>div{padding:15px;background:#164e39;color:white;border-radius:10px;margin-top:8px;max-width:350px}.exporting .report-heading{display:block;margin:0 0 20px}.exporting{padding:24px;background:#f2f6f3}.exporting .plot-scroll{overflow:visible}.exporting .plot{min-width:0!important;width:100%!important}.report-meta{font-size:12px;color:#6c8274;line-height:1.6}
 @media(max-width:800px){.filters,.kpis{grid-template-columns:1fr 1fr}nav{align-items:start;flex-direction:column}.card{padding:18px}main{padding:20px 14px}.chart-head{flex-direction:column}.plot{height:360px}.intro h2{font-size:22px}.kpi strong{font-size:22px}}@media(max-width:420px){.filters{grid-template-columns:1fr}.kpis{gap:10px}.kpi{padding:14px}.kpi strong{font-size:20px}header{padding:22px}.unit{display:none}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
@@ -14,14 +14,25 @@
 .chart-foot{font-size:10px;color:#7b8794;border:0;margin-top:10px;padding-top:4px}
 @media(min-width:1600px){main{max-width:1800px}}
 @media(max-width:800px){.chart-head h3{font-size:13px}.plot{height:440px}.chart-card{padding:18px 10px}}
+/* Acabamento do painel */
+header{background:linear-gradient(115deg,#033e2d,#075b42 65%,#08714f);border-bottom:1px solid #ffffff22;box-shadow:0 8px 32px #064e3b12;padding-top:30px;padding-bottom:30px}
+header h1{font-size:30px;letter-spacing:-1px;margin-top:8px}.eyebrow{letter-spacing:2.6px;color:#b5e7cc;opacity:1;font-size:10px}
+header p{display:inline-flex;align-items:center;background:#ffffff0c;border:1px solid #ffffff1c;padding:8px 11px;border-radius:20px}
+.header-actions{gap:10px}.header-actions button{min-height:44px;padding:12px 17px;border-radius:10px;font-size:12px;transition:background .15s,transform .15s}.header-actions button:hover{transform:translateY(-1px)}header .primary{background:#e8f6ed;color:#075337;border-color:#e8f6ed}header .primary:hover{background:#fff}
+.intro{margin:7px 0 26px}.intro h2{font-size:28px}.intro .muted{font-size:13px;line-height:1.7}
+main>section.card{padding:25px 28px;border-top:3px solid #33835d;box-shadow:0 4px 22px #1d593d06}.filter-top{margin-bottom:22px}.filter-top h3{font-size:15px}.filter-top .link{background:#f0f6f2;border:1px solid #dce9df;border-radius:7px;padding:8px 12px}
+.filter-label{font-size:11px;letter-spacing:.5px;color:#52715d;margin-bottom:10px}summary{min-height:49px;background:#f8fbf9;border-color:#d5e3d9;padding:14px;font-size:12px;align-items:center;transition:border .15s,box-shadow .15s}summary:hover,details[open] summary{border-color:#6b9f80;box-shadow:0 0 0 3px #377c5710}details[open] summary{background:#fff}.options{padding:12px;border-radius:12px;margin-top:8px;box-shadow:0 15px 40px #103b2820}.options label{padding:10px 8px}.option-actions{position:sticky;top:-12px;background:#fff;z-index:1}.filter-note{border-top:1px solid #edf3ef;padding-top:16px;line-height:1.7}
+.kpi{border-bottom:3px solid #d5e7dc}.kpi strong{margin-top:14px}.chart-card{margin-top:24px}
+@media(max-width:800px){header h1{font-size:26px}main>section.card{padding:20px}.header-actions{width:100%}.header-actions button{flex:1;padding:11px;font-size:11px}.intro h2{font-size:24px}}
+.well-legend{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px;padding:14px;background:#fff;border:1px solid #e2e9e5;border-radius:10px}.well-legend button{display:inline-flex;align-items:center;gap:9px;padding:8px 11px;font-size:12px;font-weight:600;color:#344453;border:1px solid #e4eae6;background:#fff}.well-legend button:hover{background:#f3f8f5}.well-legend button[aria-pressed="false"]{opacity:.5;text-decoration:line-through}.well-swatch{display:inline-block;width:25px;height:0;border-top:3px solid var(--well-color);position:relative;flex-shrink:0}.well-swatch:after{content:'';position:absolute;left:10px;top:-4px;width:5px;height:5px;border-radius:50%;background:var(--well-color)}.well-legend-note{flex-basis:100%;font-size:10px;color:#78897e;margin-bottom:3px}.filter-swatch{width:9px;height:9px;flex-shrink:0;border-radius:50%}
 </style></head><body>
 <header><nav><div><div class="eyebrow">Fazenda Oasis / Gestão hídrica</div><h1>Controle de Vazão</h1><p><span class="status-dot" id="statusDot"></span><span id="statusText" role="status">Conectando à planilha...</span><span id="statusPing" hidden></span></p></div><div class="header-actions"><button onclick="reloadData()"><span id="refreshIcon"></span>↻ Atualizar</button><button class="export-btn" onclick="exportDashboard('jpeg')">↓ JPEG</button><button class="export-btn primary" onclick="exportDashboard('pdf')">↓ Exportar PDF</button></div></nav></header>
 <main><div class="intro"><div><h2>Análise de vazão</h2><span class="muted">Uma visão semanal e mensal de todos os poços.</span></div></div>
 <section class="card"><div class="filter-top"><h3>Filtrar medições</h3><button class="link" onclick="resetFilters()">Limpar filtros</button></div><div class="filters" id="filters"></div><p class="filter-note">Selecione uma ou mais opções em cada filtro. Sem seleção, todas as opções são consideradas. Semanas de segunda a domingo (padrão ISO).</p></section>
 <div id="exportableArea"><div class="report-heading"><h2>Fazenda Oasis · Relatório de vazão</h2><p class="report-meta" id="reportMeta"></p></div>
 <section class="kpis"><div class="card kpi"><span>Vazão média</span><strong id="avg">—</strong><small>Litros por hora · medições filtradas</small></div><div class="card kpi"><span>Maior vazão</span><strong id="max">—</strong><small id="maxWell">Sem medições</small></div><div class="card kpi"><span>Poços no período</span><strong id="wells">0</strong><small>Com medições disponíveis</small></div><div class="card kpi"><span>Medições analisadas</span><strong id="records">0</strong><small id="dateRange">Aguardando dados</small></div></section>
-<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">01</span><div><h3>FAZENDA OÁSIS | RELATÓRIO SEMANAL DE VAZÕES</h3><p>Semanas ISO · Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="weeklyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="weeklyPlot"><canvas id="weeklyChart" role="img" aria-label="Gráfico de linhas de vazão média semanal por poço"></canvas></div></div><div class="chart-foot">Cada ponto representa a média das medições da semana. Passe o mouse para consultar os detalhes.</div></section>
-<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>FAZENDA OÁSIS | RELATÓRIO MENSAL DE VAZÕES</h3><p>Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="monthlyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="monthlyPlot"><canvas id="monthlyChart" role="img" aria-label="Gráfico de linhas de vazão média mensal por poço"></canvas></div></div><div class="chart-foot">Os filtros se aplicam aos dois gráficos. Clique na legenda para ocultar ou exibir um poço.</div></section></div></main><footer>Fazenda Oasis · Monitoramento de poços · L/H</footer><div id="toastContainer" aria-live="polite"></div><script>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">01</span><div><h3>FAZENDA OÁSIS | RELATÓRIO SEMANAL DE VAZÕES</h3><p>Semanas ISO · Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="weeklyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico semanal"></div><div id="weeklyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="weeklyPlot"><canvas id="weeklyChart" role="img" aria-label="Gráfico de linhas de vazão média semanal por poço"></canvas></div></div><div class="chart-foot">Cada ponto representa a média das medições da semana. Passe o mouse para consultar os detalhes.</div></section>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>FAZENDA OÁSIS | RELATÓRIO MENSAL DE VAZÕES</h3><p>Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="monthlyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico mensal"></div><div id="monthlyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="monthlyPlot"><canvas id="monthlyChart" role="img" aria-label="Gráfico de linhas de vazão média mensal por poço"></canvas></div></div><div class="chart-foot">Os filtros se aplicam aos dois gráficos. Clique na legenda para ocultar ou exibir um poço.</div></section></div></main><footer>Fazenda Oasis · Monitoramento de poços · L/H</footer><div id="toastContainer" aria-live="polite"></div><script>
         const PUBLISHED_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pub?output=csv';
         const PUBLISHED_SHEET_HTML_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pubhtml';
 
@@ -290,7 +301,7 @@ function renderFilters() {
   const details=document.createElement('details');const summary=document.createElement('summary');summary.id='summary-'+key;details.append(summary);
   const options=document.createElement('div'); options.className='options';const actions=document.createElement('div');actions.className='option-actions';
   ['Marcar todos','Limpar'].forEach((text,i)=>{const btn=document.createElement('button');btn.textContent=text;btn.onclick=()=>{selection[key]=new Set(i===0?values:[]);options.querySelectorAll('input').forEach(input=>input.checked=selection[key].has(input.value));applyFilters();};actions.append(btn);});options.append(actions);
-  values.forEach(value=>{const lab=document.createElement('label');const input=document.createElement('input');input.type='checkbox';input.value=value;input.checked=selection[key].has(value);input.onchange=()=>{input.checked?selection[key].add(value):selection[key].delete(value);applyFilters();};lab.append(input,document.createTextNode(key==='mes'?monthNames[Number(value)-1]:key==='semana'?'Semana '+value:value));options.append(lab);});
+  values.forEach(value=>{const lab=document.createElement('label');const input=document.createElement('input');input.type='checkbox';input.value=value;input.checked=selection[key].has(value);input.onchange=()=>{input.checked?selection[key].add(value):selection[key].delete(value);applyFilters();};lab.append(input);if(key==='poco'){const swatch=document.createElement('span');swatch.className='filter-swatch';swatch.style.backgroundColor=getWellColor(values.indexOf(value));swatch.setAttribute('aria-hidden','true');lab.append(swatch);}lab.append(document.createTextNode(key==='mes'?monthNames[Number(value)-1]:key==='semana'?'Semana '+value:value));options.append(lab);});
   details.append(options);wrap.append(details);container.append(wrap);
  }); updateSummaries();
 }
@@ -350,32 +361,134 @@ function chartConfig(type, groups, wells, period = 'week') {
   }
  };
 }
+function renderWellLegends() {
+ const allWells=[...new Set(rawData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+ for(const [id,chart] of [['weeklyLegend',chartInstance],['monthlyLegend',monthlyInstance]]) {
+  const container=document.getElementById(id);container.replaceChildren();
+  const note=document.createElement('span');note.className='well-legend-note';note.textContent='POÇOS E CORES · Clique para ocultar ou exibir a linha';container.append(note);
+  chart.data.datasets.forEach((dataset,index)=>{
+   const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-pressed',String(chart.isDatasetVisible(index)));btn.title=dataset.label+' — mostrar ou ocultar a linha';
+   const swatch=document.createElement('span');swatch.className='well-swatch';swatch.setAttribute('aria-hidden','true');swatch.style.setProperty('--well-color',dataset.borderColor);
+   if(Math.floor(allWells.indexOf(dataset.label)/WELL_COLORS.length)%2)swatch.style.borderTopStyle='dashed';
+   btn.append(swatch,document.createTextNode(dataset.label));btn.onclick=()=>{const visible=!chart.isDatasetVisible(index);chart.setDatasetVisibility(index,visible);btn.setAttribute('aria-pressed',String(visible));chart.update('none');};container.append(btn);
+  });
+  chart.options.plugins.legend.display=false;chart.update('none');
+ }
+}
 function updateChart(){
  if(chartInstance)chartInstance.destroy();if(monthlyInstance)monthlyInstance.destroy();
  const wells=[...new Set(filteredData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));const weekly=aggregate('week'),monthly=aggregate('month');
  document.getElementById('weeklyEmpty').classList.toggle('hidden',!!filteredData.length);document.getElementById('monthlyEmpty').classList.toggle('hidden',!!filteredData.length);
  document.getElementById('weeklyPlot').style.width=Math.max(850,weekly.length*82)+'px';document.getElementById('monthlyPlot').style.width=Math.max(850,monthly.length*105)+'px';
  chartInstance=new Chart(document.getElementById('weeklyChart'),chartConfig('line',weekly,wells));monthlyInstance=new Chart(document.getElementById('monthlyChart'),chartConfig('line',monthly,wells,'month'));
+ renderWellLegends();
 }
 function reloadData(){loadDataFromSheet();}
-async function exportDashboard(format){
+// Relatórios independentes da largura da tela e da rolagem do painel.
+const REPORT = { width: 1920, height: 1280, periodsPerPage: 12, wellsPerPage: 7 };
+function reportPlan() {
+ const wells = [...new Set(filteredData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+ const pages = [];
+ for (const period of ['week','month']) {
+  const groups = aggregate(period);
+  for(let p=0;p<groups.length;p+=REPORT.periodsPerPage) {
+   for(let w=0;w<wells.length;w+=REPORT.wellsPerPage) {
+    pages.push({period, groups:groups.slice(p,p+REPORT.periodsPerPage), wells:wells.slice(w,w+REPORT.wellsPerPage), wellStart:w+1, wellEnd:Math.min(w+REPORT.wellsPerPage,wells.length), wellCount:wells.length});
+   }
+  }
+ }
+ return pages;
+}
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+ let line='';
+ for(const word of text.split(/\s+/)) {
+  const next=line?line+' '+word:word;
+  if(ctx.measureText(next).width>maxWidth && line){ctx.fillText(line,x,y);y+=lineHeight;line=word;}else line=next;
+ }
+ if(line)ctx.fillText(line,x,y);
+ return y+lineHeight;
+}
+async function renderReportPage(page, index, total, issuedAt) {
+ const canvas=document.createElement('canvas');canvas.width=REPORT.width;canvas.height=REPORT.height;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#f3f6f8';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle='#065f46';ctx.fillRect(0,0,canvas.width,12);
+ ctx.fillStyle='#223b30';ctx.font='700 30px Inter, Arial';
+ ctx.fillText('FAZENDA OÁSIS | RELATÓRIO '+(page.period==='week'?'SEMANAL':'MENSAL')+' DE VAZÕES',64,72);
+ ctx.font='17px Inter, Arial';ctx.fillStyle='#5c7066';
+ const first=page.groups[0],last=page.groups[page.groups.length-1];
+ ctx.fillText(first.label+' a '+last.label+'  •  Poços '+page.wellStart+'–'+page.wellEnd+' de '+page.wellCount+' selecionados  •  L/h',64,111);
+ const filters=Object.entries(selection).map(([key,set])=>({poco:'Poços',semana:'Semanas',mes:'Meses',ano:'Anos'}[key])+': '+(set.size?(key==='poco'?set.size+' selecionados':[...set].join(', ')):'Todos')).join('  |  ');
+ ctx.font='15px Inter, Arial';
+ drawWrappedText(ctx,filters,64,145,1792,22);
+ const average=filteredData.reduce((sum,r)=>sum+r.vazao,0)/filteredData.length;
+ const max=filteredData.reduce((best,r)=>r.vazao>best.vazao?r:best,filteredData[0]);
+ const metrics=[['VAZÃO MÉDIA',Math.round(average).toLocaleString('pt-BR')+' L/h'],['MAIOR MEDIÇÃO',max.vazao.toLocaleString('pt-BR')+' L/h'],['POÇOS SELECIONADOS',String(page.wellCount)],['MEDIÇÕES FILTRADAS',filteredData.length.toLocaleString('pt-BR')]];
+ metrics.forEach(([label,value],i)=>{const x=64+i*454;ctx.fillStyle='#fff';ctx.fillRect(x,212,430,97);ctx.font='13px Inter, Arial';ctx.fillStyle='#72847a';ctx.fillText(label,x+20,242);ctx.font='700 26px Inter, Arial';ctx.fillStyle='#195c3c';ctx.fillText(value,x+20,280);});
+ const chartCanvas=document.createElement('canvas');chartCanvas.width=1792;chartCanvas.height=800;
+ chartCanvas.style.width='1792px';chartCanvas.style.height='800px';
+ const config=chartConfig('line',page.groups,page.wells,page.period);
+ config.options.responsive=false;config.options.devicePixelRatio=1;
+ config.options.plugins.legend.labels.font.size=15;
+ config.options.plugins.legend.labels.padding=23;
+ config.options.plugins.datalabels.font.size=12;
+ config.options.scales.x.ticks.font.size=12;config.options.scales.y.ticks.font.size=12;
+ config.options.scales.x.title.font.size=13;config.options.scales.y.title.font.size=13;
+ config.options.layout.padding={top:18,right:48,left:18,bottom:16};
+ // A mesma escala em todas as páginas permite comparar poços e períodos.
+ config.options.scales.y.max=Math.ceil(max.vazao*1.15/1000)*1000||1000;
+ let chart;
+ try {
+  chart=new Chart(chartCanvas,config);chart.update('none');
+  ctx.fillStyle='#fff';ctx.fillRect(64,338,1792,800);ctx.drawImage(chartCanvas,64,338,1792,800);
+ } finally {if(chart)chart.destroy();}
+ ctx.fillStyle='#63796b';ctx.font='15px Inter, Arial';
+ ctx.fillText('Cada rótulo representa a média das medições do poço no período. Ausência de medição não representa zero.',64,1172);
+ ctx.fillText('Semanas ISO: segunda a domingo. Os filtros de ano consideram a data da medição.',64,1198);
+ ctx.font='14px Inter, Arial';ctx.fillStyle='#819187';
+ ctx.fillText('Emissão: '+issuedAt+'  •  Fonte: '+document.getElementById('statusText').textContent,64,1236);
+ ctx.textAlign='right';ctx.fillText('Página '+(index+1)+' de '+total,1856,1236);ctx.textAlign='left';
+ return canvas;
+}
+async function downloadJpeg(canvas,name) {
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.96));
+ if(!blob)throw Error('Falha ao gerar JPEG');
+ const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;
+ document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function exportDashboard(format) {
  if(!filteredData.length){showToast('Selecione um período com medições para exportar.','error');return;}
- if(typeof html2canvas==='undefined'||(format==='pdf'&&!window.jspdf)){showToast('Aguarde o carregamento das ferramentas de exportação.','error');return;}
- const area=document.getElementById('exportableArea');const buttons=document.querySelectorAll('.export-btn');buttons.forEach(b=>b.disabled=true);
- const cards=[...area.querySelectorAll('.chart-card')];const widths=cards.map(c=>c.style.width);
- try{
- area.classList.add('exporting');cards.forEach(c=>{const plot=c.querySelector('.plot');c.style.width=Math.max(c.clientWidth,parseFloat(plot.style.width)+60)+'px';});chartInstance.resize();monthlyInstance.resize();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
- const date=new Date().toISOString().slice(0,10);const capture=el=>html2canvas(el,{scale:1.5,backgroundColor:'#f2f6f3',useCORS:true,logging:false,windowWidth:Math.max(1600,el.scrollWidth),width:el.scrollWidth});
- if(format==='jpeg'){
-  const width=Math.max(...cards.map(c=>c.scrollWidth),area.clientWidth);const original=area.style.width;area.style.width=width+'px';
-  try{const canvas=await capture(area);const link=document.createElement('a');link.download='Vazao_Oasis_'+date+'.jpeg';link.href=canvas.toDataURL('image/jpeg',.95);link.click();}finally{area.style.width=original;}
- }else{
-  const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  for(let i=0;i<cards.length;i++){
-   if(i)pdf.addPage();pdf.setFontSize(16);pdf.setTextColor(6,78,59);pdf.text('Fazenda Oasis - '+(i===0?'Evolucao semanal':'Comparativo mensal'),12,15);pdf.setFontSize(8);pdf.setTextColor(85,110,96);const lines=pdf.splitTextToSize(document.getElementById('reportMeta').textContent,270);pdf.text(lines,12,23);const top=28+lines.length*3;const canvas=await capture(cards[i]);const scale=Math.min(273/canvas.width,(190-top)/canvas.height);pdf.addImage(canvas.toDataURL('image/jpeg',.95),'JPEG',12,top,canvas.width*scale,canvas.height*scale);
-  }pdf.save('Vazao_Oasis_'+date+'.pdf');
- }showToast('Relatório exportado com sucesso.','success');
- }catch(err){console.error(err);showToast('Não foi possível exportar. Tente reduzir o período selecionado.','error');}
- finally{area.classList.remove('exporting');cards.forEach((c,i)=>c.style.width=widths[i]);chartInstance.resize();monthlyInstance.resize();buttons.forEach(b=>b.disabled=false);}
+ if(format==='pdf'&&!window.jspdf){showToast('Aguarde o carregamento do gerador de PDF.','error');return;}
+ const buttons=[...document.querySelectorAll('.export-btn')];const labels=buttons.map(b=>b.textContent);
+ const controls=[...document.querySelectorAll('button,input')];const disabledStates=controls.map(c=>c.disabled);controls.forEach(c=>c.disabled=true);
+ buttons.forEach(b=>{b.disabled=true;b.textContent='Gerando relatório…';});
+ try {
+  if(document.fonts)await document.fonts.ready;
+  const pages=reportPlan(),issuedAt=new Date().toLocaleString('pt-BR');
+  const date=formatDateISO(new Date());
+  const pdf=format==='pdf'?new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true}):null;
+  // JPEG: até quatro páginas por imagem, limitando memória e altura máxima.
+  let sheet=null,sheetIndex=0;
+  for(let i=0;i<pages.length;i++) {
+   const canvas=await renderReportPage(pages[i],i,pages.length,issuedAt);
+   if(pdf){
+    if(i)pdf.addPage('a4','landscape');
+    const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight(),margin=8;
+    const scale=Math.min((pw-margin*2)/canvas.width,(ph-margin*2)/canvas.height);
+    const w=canvas.width*scale,h=canvas.height*scale;
+    pdf.addImage(canvas.toDataURL('image/jpeg',.96),'JPEG',(pw-w)/2,(ph-h)/2,w,h,undefined,'FAST');
+   }else{
+    const row=i%4;
+    if(!row){sheet=document.createElement('canvas');sheet.width=REPORT.width;sheet.height=REPORT.height*Math.min(4,pages.length-i);sheetIndex++;}
+    sheet.getContext('2d').drawImage(canvas,0,row*REPORT.height);
+    if(row===3||i===pages.length-1){await downloadJpeg(sheet,'Vazao_Oasis_'+date+(pages.length>4?'_parte_'+sheetIndex:'')+'.jpeg');sheet.width=1;sheet.height=1;sheet=null;}
+   }
+   canvas.width=1;canvas.height=1;
+   await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  if(pdf)pdf.save('Vazao_Oasis_'+date+'.pdf');
+  showToast('Relatório exportado com '+pages.length+' página(s).','success');
+ }catch(err){console.error(err);showToast('Não foi possível gerar o relatório. Tente novamente.','error');}
+ finally{controls.forEach((c,i)=>c.disabled=disabledStates[i]);buttons.forEach((b,i)=>{b.textContent=labels[i];});}
 }
 </script></body></html>
