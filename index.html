@@ -51,6 +51,41 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .hide-scroll-for-export { overflow: visible !important; }
+        body { background: #f5f7f8; }
+        header { background: #fff !important; color: #172b35 !important; border-bottom: 1px solid #e2e8ec; box-shadow: none !important; }
+        header h1 { color: #172b35 !important; font-size: 1.35rem !important; }
+        header p { color: #71808a !important; }
+        header .fa-droplet { color: #28796d !important; animation: none; }
+        header .backdrop-blur-md, header h1 span { background: #edf5f2 !important; color: #427267 !important; border-color: #dfebe6 !important; }
+        header .fa-wheat-awn { color: #71808a !important; }
+        #statusBadge { color: #52636d; background: #f5f7f8; border-color: #e2e8ec; }
+        header button[onclick="reloadData()"] { background: #276d62 !important; padding: 10px 14px; }
+        header button[onclick^="export"] { color: #52636d !important; }
+        header button[onclick^="export"]:hover { background: #e8eeeb !important; }
+        header button[onclick^="export"] i { color: #71808a !important; }
+        header .shadow-inner { background: #f5f7f8 !important; border-color: #e2e8ec !important; box-shadow: none; }
+        header .w-px { background: #dce3e6 !important; }
+        main { padding-top: 28px !important; }
+        .dashboard-intro h2 { color: #172b35; font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 650; letter-spacing: -.04em; }
+        .dashboard-intro p { color: #71808a; font-size: 13px; margin-top: 5px; }
+        main section { box-shadow: 0 2px 6px #18352903 !important; border-color: #e3e9e8 !important; border-radius: 16px !important; }
+        #exportableArea { background: #f5f7f8; }
+        #exportableArea section.grid > div { box-shadow: none; border-color: #e3e9e8; min-height: 138px; align-items: flex-start; }
+        #exportableArea section.grid > div > div:last-child { background: #f1f5f3 !important; color: #668177 !important; padding: 10px; }
+        #exportableArea section.grid p[id] { letter-spacing: -.035em; }
+        #exportableArea section.grid p.uppercase { letter-spacing: .04em; font-size: 10px; }
+        input, select { min-height: 40px; background: #fff !important; }
+        #tensionBtn { height: 40px; }
+        button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #28796d; outline-offset: 3px; }
+        #pocoPillsContainer { background: #f8faf9; padding: 10px; gap: 7px; }
+        #pocoPillsContainer button { box-shadow: none; border-radius: 8px; font-weight: 500; min-height: 34px; }
+        #pocoPillsContainer .animate-ping, #statusPing { display: none; }
+        #pocoPillsContainer button[aria-pressed="true"] { background: #eef4f1 !important; border-color: #cfdfd7 !important; color: #365c50 !important; }
+        #pocoPillsContainer button[aria-pressed="true"] > span:last-child { background: transparent !important; color: #527b68 !important; }
+        #canvasWrapper { height: 440px; min-height: 320px; }
+        footer { background: transparent !important; }
+        @media (max-width: 640px) { header { position: static !important; } #canvasWrapper { height: 360px; } main section { padding: 16px !important; } }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
     </style>
 </head>
 <body class="h-full flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
@@ -111,6 +146,7 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
+<div class="dashboard-intro"><h2>Visão geral dos poços</h2><p>Acompanhe as medições e compare a vazão ao longo do tempo.</p></div>
         <!-- Controls / Filters Card -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -136,7 +172,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-regular fa-calendar text-xs"></i>
                         </div>
-                        <input type="date" id="startDate" onchange="applyFilters()" 
+                        <input type="date" id="startDate" onchange="applyFilters()"
                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
                     </div>
                 </div>
@@ -147,7 +183,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-regular fa-calendar-check text-xs"></i>
                         </div>
-                        <input type="date" id="endDate" onchange="applyFilters()" 
+                        <input type="date" id="endDate" onchange="applyFilters()"
                                class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition">
                     </div>
                 </div>
@@ -158,7 +194,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-regular fa-calendar-days text-xs"></i>
                         </div>
-                        <select id="monthSelect" onchange="applyFilters()" 
+                        <select id="monthSelect" onchange="applyFilters()"
                                 class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
                             <option value="">Todos os Meses</option>
                             <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option>
@@ -175,7 +211,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                         </div>
-                        <select id="yearSelect" onchange="applyFilters()" 
+                        <select id="yearSelect" onchange="applyFilters()"
                                 class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
                             <option value="">Todos os Anos</option>
                         </select>
@@ -188,11 +224,11 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-tags text-xs"></i>
                         </div>
-                        <select id="labelModeSelect" onchange="updateChart()" 
+                        <select id="labelModeSelect" onchange="updateChart()"
                                 class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition appearance-none">
-                            <option value="all" selected>Exibir Todos</option>
+                            <option value="all">Todos (sem sobreposição)</option>
                             <option value="extremes">Máx / Mín</option>
-                            <option value="none">Ocultar</option>
+                            <option value="none" selected>Apenas ao passar o mouse</option>
                         </select>
                     </div>
                 </div>
@@ -225,7 +261,7 @@
         </section>
 
         <div id="exportableArea" class="space-y-6 bg-slate-50">
-            
+
             <!-- KPI Cards -->
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between relative overflow-hidden">
@@ -274,7 +310,7 @@
             </section>
 
             <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4 relative">
-                
+
                 <!-- Overlay de Carregamento para Exportação -->
                 <div id="exportLoadingOverlay" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex items-center justify-center rounded-2xl">
                     <div class="flex flex-col items-center text-emerald-600 font-medium">
@@ -287,10 +323,10 @@
                     <div>
                         <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-emerald-600"></i>
-                            Evolução Temporal da Vazão (L/H) por Poço
+                            Histórico de vazão
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Mostrando todas as linhas dos poços selecionados ao longo do tempo.
+                            Compare os poços selecionados. Passe o mouse sobre as linhas para consultar os valores em L/H.
                         </p>
                     </div>
                 </div>
@@ -303,7 +339,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100 gap-2">
                     <span class="flex items-center gap-1.5">
                         <i class="fa-solid fa-circle-info text-emerald-600"></i>
@@ -337,14 +373,14 @@
         let chartInstance = null;
         let isSmoothCurve = true;
 
-        // Paleta vibrante expandida para 24 poços distintos
-        const WELL_COLORS = [
-            '#059669', '#0284c7', '#7c3aed', '#d97706', '#dc2626', 
-            '#0891b2', '#4f46e5', '#ca8a04', '#be185d', '#15803d',
-            '#0369a1', '#9333ea', '#c2410c', '#e11d48', '#0d9488',
-            '#2563eb', '#65a30d', '#a855f7', '#ea580c', '#e11d48',
-            '#10b981', '#3b82f6', '#6366f1', '#ec4899'
-        ];
+        // Tons sóbrios; os padrões de traço também distinguem as séries.
+        const WELL_COLORS = ['#276d62', '#536d80', '#8a9d92', '#364a56', '#739c95', '#78838f'];
+
+        function normalizeWellName(value) {
+            const name = String(value).trim().replace(/\s+/g, ' ');
+            const match = name.match(/^po[çc]o\s*0*(\d+)\s*(.*)$/i);
+            return match ? 'Poço ' + match[1].padStart(2, '0') + (match[2] ? ' ' + match[2] : '') : name;
+        }
 
         function getWellColor(index) {
             return WELL_COLORS[index % WELL_COLORS.length];
@@ -357,7 +393,7 @@
             toast.className = `${bgColor} px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 pointer-events-auto transition duration-300 opacity-0 transform translate-y-2`;
             toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i><span>${message}</span>`;
             container.appendChild(toast);
-            
+
             setTimeout(() => { toast.classList.remove('opacity-0', 'translate-y-2'); }, 10);
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
@@ -378,7 +414,7 @@
                 let response = await fetch(PUBLISHED_SHEET_CSV_URL);
                 if (!response.ok) response = await fetch(PUBLISHED_SHEET_HTML_URL);
                 const textData = await response.text();
-                
+
                 if (textData.includes('<table') || textData.includes('<!DOCTYPE')) {
                     parseHTMLTableData(textData);
                 } else {
@@ -455,7 +491,7 @@
                             ano: parsedDate.getFullYear(),
                             mes: parsedDate.getMonth() + 1,
                             semana: getISOWeekNumber(parsedDate),
-                            poco: String(rawPoco).trim(),
+                            poco: normalizeWellName(rawPoco),
                             vazao: numVazao
                         });
                     }
@@ -474,7 +510,7 @@
                         const rawVazao = row[wellCol];
                         if (rawVazao === undefined || rawVazao === '' || rawVazao === null) return;
                         const numVazao = parseNumericValue(rawVazao);
-                        
+
                         if (!isNaN(numVazao) && numVazao >= 0) {
                             rawData.push({
                                 id: rawData.length + 1,
@@ -484,7 +520,7 @@
                                 ano: parsedDate.getFullYear(),
                                 mes: parsedDate.getMonth() + 1,
                                 semana: getISOWeekNumber(parsedDate),
-                                poco: String(wellCol).trim(),
+                                poco: normalizeWellName(wellCol),
                                 vazao: numVazao
                             });
                         }
@@ -500,7 +536,7 @@
             rawData.sort((a, b) => a.dateObj - b.dateObj);
             updateStatus(`${rawData.length} medições carregadas`, 'success');
             showToast(`${rawData.length} dados de medição sincronizados com sucesso.`, 'success');
-            
+
             initFiltersUI();
             applyFilters();
         }
@@ -545,11 +581,11 @@
         function useFallbackMockData(msg) {
             updateStatus(msg, 'warning');
             showToast(msg + ' - Exibindo dados simulados.', 'info');
-            
+
             const mockPocos = ['Poço 01 - Sede', 'Poço 02 - Pivô Norte', 'Poço 03 - Pivô Sul', 'Poço 04 - Reservatório', 'Poço 05 - Estufa'];
             const today = new Date();
             rawData = [];
-            
+
             for (let i = 0; i < 25; i++) {
                 let d = new Date(today); d.setDate(today.getDate() - (50 - (i * 2)));
                 mockPocos.forEach(p => {
@@ -596,7 +632,7 @@
         function renderPocoPills(pocosList) {
             const container = document.getElementById('pocoPillsContainer');
             container.innerHTML = '';
-            
+
             const allRawPocos = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
             pocosList.forEach((poco) => {
@@ -605,10 +641,10 @@
                 const color = getWellColor(gIdx);
 
                 const btn = document.createElement('button');
-                btn.type = 'button'; 
+                btn.type = 'button'; btn.setAttribute('aria-pressed', String(isChecked));
                 btn.onclick = () => {
                     isChecked ? selectedPocos.delete(poco) : selectedPocos.add(poco);
-                    renderPocoPills(pocosList); 
+                    renderPocoPills(pocosList);
                     applyFilters();
                 };
 
@@ -644,7 +680,7 @@
         function selectAllPocos(select) {
             const all = Array.from(new Set(rawData.map(r => r.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
             select ? selectedPocos = new Set(all) : selectedPocos.clear();
-            renderPocoPills(all); 
+            renderPocoPills(all);
             applyFilters();
         }
 
@@ -688,7 +724,7 @@
                 return true;
             });
 
-            updateKPIs(); 
+            updateKPIs();
             updateChart();
         }
 
@@ -727,10 +763,10 @@
             });
 
             const activePocos = Array.from(new Set(filteredData.map(d => d.poco))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-            
+
             const pocoMap = {};
             activePocos.forEach(p => pocoMap[p] = {});
-            
+
             filteredData.forEach(item => {
                 if (!pocoMap[item.poco][item.dateDisplay]) {
                     pocoMap[item.poco][item.dateDisplay] = [];
@@ -744,7 +780,7 @@
             const datasets = activePocos.map((pocoName, sIdx) => {
                 const gIdx = allRawPocos.indexOf(pocoName);
                 const color = getWellColor(gIdx >= 0 ? gIdx : sIdx);
-                
+
                 const dataPts = uniqueDates.map(d => {
                     const arr = pocoMap[pocoName][d];
                     if (!arr || arr.length === 0) return null;
@@ -761,23 +797,23 @@
                     data: dataPts,
                     borderColor: color,
                     backgroundColor: color,
-                    borderWidth: 3,
+                    borderWidth: 1.8, borderDash: [[], [7, 3], [2, 3], [9, 3, 2, 3]][Math.floor((gIdx >= 0 ? gIdx : sIdx) / WELL_COLORS.length) % 4],
                     tension: isSmoothCurve ? 0.35 : 0,
-                    pointRadius: 5,
-                    pointHoverRadius: 8,
+                    pointRadius: activePocos.length <= 3 && uniqueDates.length <= 45 ? 2.5 : 0,
+                    pointHoverRadius: 5,
                     pointBackgroundColor: color,
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 1.5,
                     spanGaps: true,
-                    clip: true,
-                    
+                    clip: 8,
+
                     datalabels: {
                         display: function(context) {
                             if (labelMode === 'none') return false;
                             const val = context.dataset.data[context.dataIndex];
                             if (val === null || val === undefined) return false;
-                            if (labelMode === 'extremes') return val === maxVal || val === minVal;
-                            return true; // Exibe 100% dos dados para não haver valores ocultos
+                            if (labelMode === 'extremes') return val === maxVal || val === minVal ? 'auto' : false;
+                            return 'auto'; // Omitir etiquetas que colidem com outras.
                         },
                         clamp: true,
                         formatter: v => v !== null ? v.toLocaleString('pt-BR') : '',
@@ -791,8 +827,8 @@
                         font: { family: 'Inter', size: 9, weight: 'bold' },
                         backgroundColor: color, // Preenchimento da etiqueta com a cor própria do poço
                         color: '#ffffff', // Texto em branco contrastante
-                        borderColor: '#ffffff', 
-                        borderWidth: 1.5, 
+                        borderColor: '#ffffff',
+                        borderWidth: 1.5,
                         borderRadius: 6,
                         padding: { top: 3, bottom: 3, left: 6, right: 6 }
                     }
@@ -810,27 +846,27 @@
                 type: 'line',
                 data: { labels: uniqueDates, datasets: datasets },
                 options: {
-                    responsive: true, 
+                    responsive: true,
                     maintainAspectRatio: false,
-                    layout: { 
-                        padding: { top: 45, right: 35, bottom: 40, left: 20 } 
+                    layout: {
+                        padding: { top: 12, right: 16, bottom: 8, left: 4 }
                     },
-                    interaction: { mode: 'index', intersect: false },
+                    interaction: { mode: 'nearest', axis: 'xy', intersect: false },
                     plugins: {
-                        legend: { 
-                            position: 'top', 
-                            labels: { 
-                                usePointStyle: true, 
-                                boxWidth: 10, 
-                                font: { family: 'Inter', size: 12, weight: '600' },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 18, boxHeight: 5, pointStyle: 'line',
+                                font: { family: 'Inter', size: 11, weight: '500' },
                                 padding: 15
-                            } 
+                            }
                         },
-                        tooltip: { 
-                            backgroundColor: 'rgba(15,23,42,0.95)', 
+                        tooltip: {
+                            backgroundColor: 'rgba(15,23,42,0.95)',
                             titleFont: { family: 'Inter', size: 12, weight: 'bold' },
                             bodyFont: { family: 'Inter', size: 11 },
-                            padding: 12, 
+                            padding: 12,
                             cornerRadius: 10,
                             callbacks: {
                                 label: function(context) {
@@ -843,29 +879,29 @@
                         }
                     },
                     scales: {
-                        x: { 
-                            grid: { color: '#f1f5f9' }, 
-                            ticks: { 
-                                font: { size: 10 }, 
-                                color: '#64748b', 
-                                autoSkip: true, 
-                                maxRotation: 0, 
+                        x: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                font: { size: 10 },
+                                color: '#64748b',
+                                autoSkip: true, maxTicksLimit: 10,
+                                maxRotation: 0,
                                 minRotation: 0,
                                 callback: function(value) {
                                     const label = this.getLabelForValue(value);
                                     // Corta os 5 primeiros caracteres para manter apenas DD/MM (ex: 21/09)
                                     return label ? label.substring(0, 5) : label;
                                 }
-                            } 
+                            }
                         },
-                        y: { 
-                            grace: '15%', // Adiciona 15% de margem extra para os rótulos não tocarem no fundo
-                            grid: { color: '#f1f5f9' }, 
-                            ticks: { 
-                                font: { size: 11 }, 
+                        y: {
+                            beginAtZero: true, grace: '5%', // Margem superior discreta para a curva
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                maxTicksLimit: 6, font: { size: 11 },
                                 color: '#64748b',
-                                callback: v => v.toLocaleString('pt-BR') + ' L/H' 
-                            } 
+                                callback: v => v.toLocaleString('pt-BR') + ' L/H'
+                            }
                         }
                     }
                 }
@@ -894,14 +930,14 @@
             document.getElementById('exportLoadingOverlay').classList.remove('hidden');
             const scrollContainer = document.getElementById('chartScrollContainer');
             const wrapper = document.getElementById('canvasWrapper');
-            
+
             const originalOverflow = scrollContainer.style.overflowX;
             const originalWidth = wrapper.style.minWidth;
 
             scrollContainer.style.overflowX = 'visible';
             scrollContainer.classList.add('hide-scroll-for-export');
-            wrapper.style.minWidth = '100%'; 
-            
+            wrapper.style.minWidth = '100%';
+
             if (chartInstance) chartInstance.resize();
             await new Promise(r => setTimeout(r, 500));
 
@@ -942,12 +978,12 @@
                     link.href = imgData;
                     link.click();
                     showToast('Relatório em JPG baixado.', 'success');
-                } 
+                }
                 else if (format === 'pdf') {
                     if (!window.jspdf) throw new Error("jsPDF indisponível");
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('landscape', 'mm', 'a4');
-                    
+
                     const pdfWidth = pdf.internal.pageSize.getWidth();
                     const margin = 10;
                     const maxDrawWidth = pdfWidth - (margin * 2);
@@ -959,7 +995,7 @@
                     pdf.setFontSize(16);
                     pdf.setTextColor(30, 41, 59);
                     pdf.text("Relatório Geral de Vazão - Fazenda Oasis", margin, margin + 5);
-                    
+
                     pdf.setFontSize(10);
                     pdf.setTextColor(100, 116, 139);
                     pdf.text(`Emissão: ${new Date().toLocaleString('pt-BR')} | Dados consolidados`, margin, margin + 11);
