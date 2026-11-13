@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 const script=await readFile(new URL('../tanks.js',import.meta.url),'utf8');
 const nodes=new Map();
-function element(){return {children:[],style:{},attributes:{},value:'',checkValidity(){return this.value===''||(Number(this.value)>=0&&Number(this.value)<=24);},reportValidity(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
+function element(){return {children:[],style:{},attributes:{},value:'',focus(){},checkValidity(){return this.value===''||(Number(this.value)>=0&&Number(this.value)<=24);},reportValidity(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
 function get(id){if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);}
 const charts=[];
 const storage=new Map();
@@ -97,4 +97,35 @@ const remove=get('tankRouteHistory').children[1].children[0].children[4].childre
 assert.equal(calculate(routeRows)[0].total,4800,'Remover período volta ao destino padrão');
 vm.runInContext("tankRoutes=[{well:13,tank:'03',start:'2026-11-01',end:'2026-11-01'}]",context);
 assert.equal(calculate([row(13,'2026-11-01',100)])[0].total,2400,'Permite direcionar outro poço com leitura');
-console.log('OK: horas individuais, persistência, poços sem vazão ocultos, histórico por data, limites inclusivos, sobreposição e ausência de dupla contagem.');
+context.rawData=[row(3,'2026-11-01',1000),row(3,'2026-11-02',1000)];
+vm.runInContext("tankRoutes=[];tankHourSettings.days['2026-11-01:3']=2;renderTanks()",context);
+get('tankSplitWell').value='3';get('tankSplitDate').value='2026-11-01';get('tankSplitDate').checkValidity=()=>true;
+get('tankSplit03').value='14';get('tankSplit04').value='10';
+vm.runInContext('addTankSplit()',context);
+let splitResult=calculate(context.rawData);
+assert.equal(splitResult[0].total,38000,'14h ao tanque 03 mais 24h do dia seguinte');
+assert.equal(splitResult[1].total,10000,'10h ao tanque 04 na data da mudança');
+assert.equal(splitResult[0].total+splitResult[1].total,48000,'Conserva volume total sem duplicar horas');
+assert.equal(splitResult[0].daily[0].wells.find(w=>w.well===3).hours,14,'Divisão tem prioridade sobre ajuste diário de 2h');
+assert.equal(splitResult[1].daily[1].wells.some(w=>w.well===3),false,'Demais dias preservam o histórico');
+assert.equal(JSON.parse(storage.get('oasis.tankSplits.v1'))['2026-11-01:3']['04'],10,'Divisão persistida');
+assert.equal(get('tankHoursDaily04').children[1].children[0].children.length,1,'Dia mais recente não mostra poço enviado ao outro tanque');
+get('tankEditDate04').value='2026-11-01';get('tankEditDate04').onchange();
+assert.equal(get('tankHoursDaily04').children[1].children[0].children[2].textContent,'10 h · ajuste na divisão diária entre tanques');
+get('tankSplit03').value='15';get('tankSplit04').value='10';vm.runInContext('addTankSplit()',context);
+assert.match(get('tankSplitStatus').textContent,/24 horas/);
+assert.equal(calculate(context.rawData)[1].total,10000,'Rejeita total maior que 24h');
+get('tankSplit03').value='6';get('tankSplit04').value='4';vm.runInContext('addTankSplit()',context);
+assert.equal(calculate(context.rawData)[0].total+calculate(context.rawData)[1].total,34000,'Tempo desligado não envia volume');
+assert.equal(vm.runInContext('Object.keys(tankDaySplits).length',context),1,'Atualiza a divisão existente');
+const splitReload=vm.createContext({localStorage});vm.runInContext(script,splitReload);
+assert.equal(vm.runInContext("tankDaySplits['2026-11-01:3']['03']",splitReload),6,'Restaura divisão na recarga');
+const editSplit=get('tankSplitHistory').children[1].children[0].children[5].children[0].children[0];editSplit.onclick();
+assert.equal(get('tankSplit03').value,'6');
+get('tankSplitDate').value='2026-11-03';get('tankSplit03').value='1';get('tankSplit04').value='1';vm.runInContext('addTankSplit()',context);
+assert.match(get('tankSplitStatus').textContent,/não possui vazão/);
+assert.equal(vm.runInContext('Object.keys(tankDaySplits).length',context),1,'Sem criar divisão sem vazão no dia');
+const removeSplit=get('tankSplitHistory').children[1].children[0].children[5].children[0].children[1];removeSplit.onclick();
+assert.equal(calculate(context.rawData)[0].total,26000,'Remover divisão restaura histórico e ajuste de horas de 2h');
+assert.equal(calculate(context.rawData)[1].total,null);
+console.log('OK: histórico, horas individuais, divisão 14h/10h, desligamento, edição, persistência e volumes sem duplicação.');
