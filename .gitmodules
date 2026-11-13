@@ -1,0 +1,3 @@
+[submodule "sistema-adubacao"]
+	path = sistema-adubacao
+	url = https://github.com/lucasspgoasis-coder/sistema-aduba-o.git
