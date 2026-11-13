@@ -1,3 +1,6 @@
 [submodule "sistema-adubacao"]
 	path = sistema-adubacao
 	url = https://github.com/lucasspgoasis-coder/sistema-aduba-o.git
+[submodule "sistema-rocadeira"]
+	path = sistema-rocadeira
+	url = https://github.com/lucasspgoasis-coder/sistema-ro-adeira.git
