@@ -31,7 +31,7 @@ function addTankRoute(){
  tankRoutes.push({well,tank,start:start.value,end:end.value});saveTankRoutes();renderTanks();
 }
 function renderTankRoutes(){
- const select=document.getElementById('tankRouteWell'),previous=select.value;select.replaceChildren();
+ const select=document.getElementById('tankRouteWell');if(!select)return;const previous=select.value;select.replaceChildren();
  const all=[...new Set(rawData.filter(row=>Number.isFinite(row.vazao)&&row.vazao>=0).map(row=>tankWellNumber(row.poco)).filter(Boolean))].sort((a,b)=>a-b);
  for(const well of all){const option=document.createElement('option');option.value=String(well);option.textContent='Poço '+String(well).padStart(2,'0');select.append(option);}select.value=all.includes(Number(previous))?previous:String(all[0]||'');select.disabled=!all.length;
  tankTable('tankRouteHistory',['Poço','Destino no período','Início (inclusive)','Fim (inclusive)','Ação'],tankRoutes.map((route,index)=>{const remove=document.createElement('button');remove.type='button';remove.textContent='Remover';remove.setAttribute('aria-label','Remover direcionamento do Poço '+route.well+' ao Tanque '+route.tank);remove.onclick=()=>{tankRoutes.splice(index,1);saveTankRoutes();renderTanks();};return ['Poço '+String(route.well).padStart(2,'0'),'Tanque '+route.tank,route.start?tankDate(route.start):'Desde o início dos dados',route.end?tankDate(route.end):'Sem data final',remove];}));
@@ -97,7 +97,7 @@ function renderTanks(){
  renderTankRoutes();renderTankSplits();
  const results=calculateTankData(rawData,tankFilters.day||tankFilters.start,tankFilters.day||tankFilters.end,tankFilters.hours);
  const dates=results[0].daily.map(day=>day.date);tankText('tankPeriod',tankFilters.day?tankDate(tankFilters.day)+(dates.length?' · somente este dia':' · nenhuma medição registrada'):dates.length?tankDate(dates[0])+' a '+tankDate(dates.at(-1)):'Nenhum dado no período');
- tankText('tankEstimateNote','Estimativa: vazão média medida no dia (L/h) × horas de funcionamento do poço naquele dia. Prioridade: divisão diária entre tanques → ajuste do dia → padrão do poço → padrão geral ('+tankFilters.hours+' h/dia). O destino é definido pelo histórico de direcionamentos na data da medição. Fora dos períodos cadastrados, usa-se o destino padrão atual.');
+ tankText('tankEstimateNote','Estimativa: vazão média medida no dia (L/h) × horas de funcionamento do poço naquele dia. Prioridade: divisão diária entre tanques → ajuste do dia → padrão do poço → padrão geral ('+tankFilters.hours+' h/dia). Os volumes respeitam a distribuição configurada e as divisões diárias entre tanques.');
  for(const tank of results){
   const id=tank.id,known=tank.total!==null;
   tankText('tankTotal'+id,known?tankNumber(tank.total)+' L':'—');tankText('tankAverage'+id,known?tankNumber(tank.average)+' L/dia':'—');tankText('tankPeak'+id,tank.peak?tankNumber(tank.peak.total)+' L':'—');tankText('tankPeakDate'+id,tank.peak?tankDate(tank.peak.date):'Sem medições');tankText('tankCoverage'+id,tank.completeDays+' / '+tank.daily.length);tankText('tankCoverageNote'+id,'dias com todos os poços direcionados medidos');
