@@ -41,7 +41,7 @@ assert.equal(get('tankDrawing03').children.length,1,'Ilustração do tanque 03')
 assert.equal(get('tankDrawing04').children.length,1,'Ilustração do tanque 04');
 assert.equal(get('tankWells03').children[1].children.length,1);
 assert.equal(get('tankWells04').children[1].children.length,2);
-const defaultInput=get('tankWells03').children[1].children[0].children[2].children[0];
+const defaultInput=vm.runInContext('tankHoursInput(1)',context);
 defaultInput.value='8';defaultInput.onchange();
 assert.equal(calculate(input)[0].total,1600,'Horas padrão do Poço 01');
 assert.equal(calculate(input)[1].total,12000,'Outro tanque preservado');
@@ -110,7 +110,7 @@ assert.equal(splitResult[0].total+splitResult[1].total,48000,'Conserva volume to
 assert.equal(splitResult[0].daily[0].wells.find(w=>w.well===3).hours,14,'Divisão tem prioridade sobre ajuste diário de 2h');
 assert.equal(splitResult[1].daily[1].wells.some(w=>w.well===3),false,'Demais dias preservam o histórico');
 assert.equal(JSON.parse(storage.get('oasis.tankSplits.v1'))['2026-11-01:3']['04'],10,'Divisão persistida');
-assert.equal(get('tankHoursDaily04').children[1].children[0].children.length,1,'Dia mais recente não mostra poço enviado ao outro tanque');
+assert.equal(get('tankHoursDaily04').children[1].children[0].children[2].textContent,'10 h · ajuste na divisão diária entre tanques','Gráficos e editor mostram o dia distribuído');
 get('tankEditDate04').value='2026-11-01';get('tankEditDate04').onchange();
 assert.equal(get('tankHoursDaily04').children[1].children[0].children[2].textContent,'10 h · ajuste na divisão diária entre tanques');
 get('testSplit03').value='15';get('testSplit04').value='10';vm.runInContext('addTankSplit()',context);
@@ -173,4 +173,25 @@ assert.equal(calculate(context.rawData)[0].total,null,'Poço 01 muda integralmen
 assert.equal(calculate(context.rawData)[1].total,108000);
 get('tankSplitDate').value='2026-11-05';vm.runInContext('renderTankSplitEditor()',context);
 assert.equal(get('tankSplitEditor').children[1].children[0].children.length,1,'Sem listar poços sem vazão na data');
-console.log('OK: edição por linha de qualquer poço, prévia dos volumes, transferência integral, divisão diária e ausência de dupla contagem.');
+context.rawData=[row(1,'2026-11-01',1000),row(7,'2026-11-01',2000),row(13,'2026-11-01',3000),row(1,'2026-11-02',9000)];
+get('tankSplitDate').value='2026-11-01';
+vm.runInContext("tankDaySplits={};tankFilters.day='';tankFilters.start='';tankFilters.end='';renderTanks()",context);
+editorRows=get('tankSplitEditor').children[1].children;
+for(const [index,a,b] of [[0,4,8],[1,3,2],[2,0,1]]){editorRows[index].children[2].children[0].value=String(a);editorRows[index].children[3].children[0].value=String(b);}
+vm.runInContext('applyTankSplitTable()',context);
+assert.equal(get('tankExactDate').value,'2026-11-01','Aplicar distribuição sincroniza o dia dos gráficos');
+assert.equal(get('tankTotal03').textContent,'10.000 L','Volume soma apenas horas destinadas ao tanque 03');
+assert.equal(get('tankTotal04').textContent,'15.000 L','Volume soma apenas horas destinadas ao tanque 04');
+assert.equal(get('tankAllocatedHours03').textContent,'7 h-poço');
+assert.equal(get('tankAllocatedHours04').textContent,'11 h-poço');
+assert.equal(get('tankWells03').children[1].children[0].children[2].textContent,'4 h','Tabela mostra tempo destinado ao tanque, não padrão de 24h');
+assert.equal(get('tankWells04').children[1].children[0].children[2].textContent,'8 h');
+assert.equal(charts.at(-2).data.labels.length,1,'Não mistura volume de outros dias com distribuição do dia');
+const savedBefore=storage.get('oasis.tankSplits.v1');
+editorRows=get('tankSplitEditor').children[1].children;
+editorRows[0].children[2].children[0].value='24';editorRows[0].children[3].children[0].value='10';
+editorRows[1].children[2].children[0].value='5';
+vm.runInContext('applyTankSplitTable()',context);
+assert.equal(storage.get('oasis.tankSplits.v1'),savedBefore,'Aplicação conjunta inválida não salva parcialmente');
+assert.equal(get('tankTotal03').textContent,'10.000 L');
+console.log('OK: recálculo conjunto, dia sincronizado, horas exclusivas por tanque, volumes e validação sem aplicação parcial.');
