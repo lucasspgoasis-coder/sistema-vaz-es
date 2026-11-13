@@ -4,10 +4,12 @@ import vm from 'node:vm';
 
 const script=await readFile(new URL('../tanks.js',import.meta.url),'utf8');
 const nodes=new Map();
-function element(){return {children:[],style:{},attributes:{},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
+function element(){return {children:[],style:{},attributes:{},value:'',checkValidity(){return this.value===''||(Number(this.value)>=0&&Number(this.value)<=24);},reportValidity(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
 function get(id){if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);}
 const charts=[];
-const context=vm.createContext({activeDashboardTab:'tanks',rawData:[],WELL_COLORS:['red','green','blue'],document:{getElementById:get,createElement:element,createElementNS:element,querySelectorAll:()=>[]},Chart:class{constructor(canvas,config){charts.push(config);}destroy(){}}});
+const storage=new Map();
+const localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)};
+const context=vm.createContext({activeDashboardTab:'tanks',rawData:[],localStorage,WELL_COLORS:['red','green','blue'],document:{getElementById:get,createElement:element,createElementNS:element,querySelectorAll:()=>[]},Chart:class{constructor(canvas,config){charts.push(config);}destroy(){}}});
 vm.runInContext(script,context);
 function calculate(rows,start='',end='',hours=24){context.inputRows=rows;context.inputStart=start;context.inputEnd=end;context.inputHours=hours;return JSON.parse(vm.runInContext('JSON.stringify(calculateTankData(inputRows,inputStart,inputEnd,inputHours))',context));}
 const row=(well,date,flow)=>({poco:'Poço '+String(well).padStart(2,'0'),dateStr:date,vazao:flow});
@@ -38,4 +40,27 @@ assert.equal(get('tankDrawing03').children.length,1,'Ilustração do tanque 03')
 assert.equal(get('tankDrawing04').children.length,1,'Ilustração do tanque 04');
 assert.equal(get('tankWells03').children[1].children.length,7);
 assert.equal(get('tankWells04').children[1].children.length,5);
-console.log('OK: cálculos, médias diárias, datas, horas, cobertura, dados ausentes, dois gráficos e dois tanques.');
+const defaultInput=get('tankWells03').children[1].children[0].children[2].children[0];
+defaultInput.value='8';defaultInput.onchange();
+assert.equal(calculate(input)[0].total,1600,'Horas padrão do Poço 01');
+assert.equal(calculate(input)[1].total,12000,'Outro tanque preservado');
+const dailyInput=get('tankHoursDaily03').children[1].children[0].children[2].children[0];
+get('tankEditDate03').value='2026-11-01';get('tankEditDate03').onchange();
+const firstDayInput=get('tankHoursDaily03').children[1].children[0].children[2].children[0];
+firstDayInput.value='2.5';firstDayInput.onchange();
+assert.equal(calculate(input)[0].total,500,'Ajuste específico do dia tem prioridade');
+assert.equal(calculate([...input,row(1,'2026-11-02',100)])[0].total,1300,'Outros dias usam o padrão do poço');
+assert.equal(get('tankHoursDaily03').children[1].children[0].children[1].textContent,'200 L/h','Vazão diária usada visível');
+assert.equal(get('tankHoursDaily03').children[1].children[0].children[3].textContent,'200 L/h × 2,5 h = 500 L');
+assert.equal(JSON.parse(storage.get('oasis.tankHours.v1')).days['2026-11-01:1'],2.5,'Ajuste persistido');
+let control=get('tankHoursDaily03').children[1].children[0].children[2].children[0];control.value='0';control.onchange();
+assert.equal(calculate(input)[0].total,0,'Zero horas desliga apenas o poço daquele dia');
+control=get('tankHoursDaily03').children[1].children[0].children[2].children[0];control.value='25';control.onchange();
+assert.equal(calculate(input)[0].total,0,'Rejeita mais de 24h');
+control=get('tankHoursDaily03').children[1].children[0].children[2].children[0];control.value='';control.onchange();
+assert.equal(calculate(input)[0].total,1600,'Limpar ajuste usa padrão do poço');
+const reloadContext=vm.createContext({localStorage});vm.runInContext(script,reloadContext);
+assert.equal(vm.runInContext("tankHoursFor(1,'2026-11-01',24)",reloadContext),8,'Recarga restaura horários salvos');
+vm.runInContext('resetTankHours()',context);
+assert.equal(calculate(input)[0].total,4800,'Limpar ajustes restaura padrão geral');
+console.log('OK: cálculos, horas por poço/dia, zero horas, validação, persistência, recálculo de gráficos e vazão diária exibida.');
