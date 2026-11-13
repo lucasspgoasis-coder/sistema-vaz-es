@@ -25,14 +25,50 @@ main>section.card{padding:25px 28px;border-top:3px solid #33835d;box-shadow:0 4p
 .kpi{border-bottom:3px solid #d5e7dc}.kpi strong{margin-top:14px}.chart-card{margin-top:24px}
 @media(max-width:800px){header h1{font-size:26px}main>section.card{padding:20px}.header-actions{width:100%}.header-actions button{flex:1;padding:11px;font-size:11px}.intro h2{font-size:24px}}
 .well-legend{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px;padding:14px;background:#fff;border:1px solid #e2e9e5;border-radius:10px}.well-legend button{display:inline-flex;align-items:center;gap:9px;padding:8px 11px;font-size:12px;font-weight:600;color:#344453;border:1px solid #e4eae6;background:#fff}.well-legend button:hover{background:#f3f8f5}.well-legend button[aria-pressed="false"]{opacity:.5;text-decoration:line-through}.well-swatch{display:inline-block;width:25px;height:0;border-top:3px solid var(--well-color);position:relative;flex-shrink:0}.well-swatch:after{content:'';position:absolute;left:10px;top:-4px;width:5px;height:5px;border-radius:50%;background:var(--well-color)}.well-legend-note{flex-basis:100%;font-size:10px;color:#78897e;margin-bottom:3px}.filter-swatch{width:9px;height:9px;flex-shrink:0;border-radius:50%}
-</style></head><body>
+.dashboard-tabs{display:flex;gap:8px;margin:26px 0 18px;border-bottom:1px solid #dce7df}.dashboard-tab{padding:12px 17px;border:0;border-bottom:3px solid transparent;border-radius:9px 9px 0 0;background:transparent;color:#688072;font-size:13px}.dashboard-tab:hover{background:#edf5ef}.dashboard-tab[aria-selected="true"]{border-bottom-color:#168056;background:#e8f3ec;color:#125639}.tab-panel[hidden]{display:none}.daily-kpis{margin-top:0}.ranking-card{margin-top:24px}.ranking-table-wrap{overflow-x:auto;border:1px solid #e3ebe5;border-radius:10px}.ranking-table{width:100%;border-collapse:collapse;font-size:12px}.ranking-table th,.ranking-table td{padding:13px 15px;border-bottom:1px solid #e8eee9;text-align:left;white-space:nowrap}.ranking-table thead th{background:#f1f6f3;color:#52715d;font-size:10px;letter-spacing:.5px;text-transform:uppercase}.ranking-table tbody tr:last-child td{border-bottom:0}.ranking-table tbody tr:hover{background:#f8fbf9}.ranking-table .rank-number{font-weight:700;color:#16603f;width:48px}.ranking-value{font-weight:700;color:#164e37;font-variant-numeric:tabular-nums}.ranking-bar-cell{width:42%;min-width:170px}.ranking-bar-track{height:10px;background:#edf3ef;border-radius:10px;overflow:hidden}.ranking-bar{height:100%;min-width:2px;background:linear-gradient(90deg,#50a878,#08714f);border-radius:10px}.ranking-empty{padding:28px!important;text-align:center!important;color:#819087}
+@media(max-width:640px){.dashboard-tabs{gap:2px}.dashboard-tab{flex:1;padding:11px 8px;font-size:12px}.ranking-card{padding:18px 12px}}
+</style><link rel="stylesheet" href="maintenance.css"></head><body>
 <header><nav><div><div class="eyebrow">Fazenda Oasis / Gestão hídrica</div><h1>Controle de Vazão</h1><p><span class="status-dot" id="statusDot"></span><span id="statusText" role="status">Conectando à planilha...</span><span id="statusPing" hidden></span></p></div><div class="header-actions"><button onclick="reloadData()"><span id="refreshIcon"></span>↻ Atualizar</button><button class="export-btn" onclick="exportDashboard('jpeg')">↓ JPEG</button><button class="export-btn primary" onclick="exportDashboard('pdf')">↓ Exportar PDF</button></div></nav></header>
-<main><div class="intro"><div><h2>Análise de vazão</h2><span class="muted">Uma visão semanal e mensal de todos os poços.</span></div></div>
-<section class="card"><div class="filter-top"><h3>Filtrar medições</h3><button class="link" onclick="resetFilters()">Limpar filtros</button></div><div class="filters" id="filters"></div><p class="filter-note">Selecione uma ou mais opções em cada filtro. Sem seleção, todas as opções são consideradas. Semanas de segunda a domingo (padrão ISO).</p></section>
+<main>
+<div class="dashboard-tabs" role="tablist" aria-label="Seções do painel">
+<button id="tab-overview" class="dashboard-tab" type="button" role="tab" aria-selected="true" aria-controls="panel-overview" onclick="switchDashboardTab('overview')">01 · Detalhado</button>
+<button id="tab-daily" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-daily" onclick="switchDashboardTab('daily')">02 · Diário</button>
+<button id="tab-maintenance" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-maintenance" onclick="switchDashboardTab('maintenance')">03 · Manutenção</button>
+<button id="tab-meters" class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-meters" onclick="switchDashboardTab('meters')">04 · Medidores</button>
+</div>
 <div id="exportableArea"><div class="report-heading"><h2>Fazenda Oasis · Relatório de vazão</h2><p class="report-meta" id="reportMeta"></p></div>
+<div id="panel-overview" class="tab-panel" role="tabpanel" aria-labelledby="tab-overview"><div class="intro"><div><h2>Análise detalhada</h2><span class="muted">Vazão semanal e mensal dos poços.</span></div></div><div id="overviewFilterSlot"><section id="tabFilters" class="card"><div class="filter-top"><h3>Filtrar medições</h3><button class="link" onclick="resetFilters()">Limpar filtros</button></div><div class="filters" id="filters"></div><p class="filter-note">Selecione uma ou mais opções em cada filtro. Sem seleção, todas as opções são consideradas. Os filtros são independentes em cada aba. Semanas de segunda a domingo (padrão ISO).</p></section></div>
 <section class="kpis"><div class="card kpi"><span>Vazão média</span><strong id="avg">—</strong><small>Litros por hora · medições filtradas</small></div><div class="card kpi"><span>Maior vazão</span><strong id="max">—</strong><small id="maxWell">Sem medições</small></div><div class="card kpi"><span>Poços no período</span><strong id="wells">0</strong><small>Com medições disponíveis</small></div><div class="card kpi"><span>Medições analisadas</span><strong id="records">0</strong><small id="dateRange">Aguardando dados</small></div></section>
 <section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">01</span><div><h3>FAZENDA OÁSIS | RELATÓRIO SEMANAL DE VAZÕES</h3><p>Semanas ISO · Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="weeklyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico semanal"></div><div id="weeklyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="weeklyPlot"><canvas id="weeklyChart" role="img" aria-label="Gráfico de linhas de vazão média semanal por poço"></canvas></div></div><div class="chart-foot">Cada ponto representa a média das medições da semana. Passe o mouse para consultar os detalhes.</div></section>
-<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>FAZENDA OÁSIS | RELATÓRIO MENSAL DE VAZÕES</h3><p>Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="monthlyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico mensal"></div><div id="monthlyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="monthlyPlot"><canvas id="monthlyChart" role="img" aria-label="Gráfico de linhas de vazão média mensal por poço"></canvas></div></div><div class="chart-foot">Os filtros se aplicam aos dois gráficos. Clique na legenda para ocultar ou exibir um poço.</div></section></div></main><footer>Fazenda Oasis · Monitoramento de poços · L/H</footer><div id="toastContainer" aria-live="polite"></div><script>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>FAZENDA OÁSIS | RELATÓRIO MENSAL DE VAZÕES</h3><p>Todos os poços selecionados no mesmo gráfico · Valores médios em L/h.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="monthlyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico mensal"></div><div id="monthlyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="monthlyPlot"><canvas id="monthlyChart" role="img" aria-label="Gráfico de linhas de vazão média mensal por poço"></canvas></div></div><div class="chart-foot">Os filtros se aplicam aos dois gráficos. Clique na legenda para ocultar ou exibir um poço.</div></section>
+</div>
+<div id="panel-daily" class="tab-panel" role="tabpanel" aria-labelledby="tab-daily" hidden><div class="intro"><div><h2>Análise diária</h2><span class="muted">Compare a vazão dos poços e o ranking diário.</span></div></div><div id="dailyFilterSlot" style="margin-bottom:20px"></div>
+<section class="kpis daily-kpis" aria-label="Resumo da vazão diária">
+<div class="card kpi"><span>Vazão média diária</span><strong id="dailyAvg">—</strong><small>Média das medições no período · L/h</small></div>
+<div class="card kpi"><span>Poço com maior média</span><strong id="dailyTop">—</strong><small id="dailyTopValue">Sem medições</small></div>
+<div class="card kpi"><span>Poços analisados</span><strong id="dailyWells">0</strong><small>Com medições no período</small></div>
+<div class="card kpi"><span>Medições no período</span><strong id="dailyDays">0</strong><small id="dailyDateRange">Aguardando dados</small></div>
+</section>
+<section class="card chart-card"><div class="chart-head"><div class="chart-title"><span class="number">01</span><div><h3>VAZÃO DIÁRIA POR POÇO</h3><p>Vazão média por poço no período selecionado · Valores acima das barras.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="dailyLegend" class="well-legend" role="group" aria-label="Poços e cores do gráfico diário"></div><div id="dailyEmpty" class="empty hidden">Nenhuma medição para os filtros selecionados.</div><div class="plot-scroll"><div class="plot" id="dailyPlot"><canvas id="dailyChart" role="img" aria-label="Gráfico de barras da vazão média diária por poço"></canvas></div></div><div class="chart-foot">Cada barra representa a vazão média do poço no período selecionado. Ausência de medição não representa zero.</div></section>
+<section class="card ranking-card"><div class="chart-head"><div class="chart-title"><span class="number">02</span><div><h3>RANKING DE VAZÃO MÉDIA POR POÇO</h3><p>Poços ordenados da maior para a menor vazão média no período selecionado.</p></div></div><span class="unit">MÉDIA · L/H</span></div><div id="rankingEmpty" class="empty hidden">Nenhuma medição para o dia selecionado.</div><div class="plot-scroll"><div class="plot" id="rankingPlot"><canvas id="rankingChart" role="img" aria-label="Ranking dos poços por vazão média no dia"></canvas></div></div><div class="ranking-table-wrap" style="margin-top:20px"><table class="ranking-table"><thead><tr><th scope="col">Posição</th><th scope="col">Poço</th><th scope="col">Média diária</th><th scope="col">Dias medidos</th><th scope="col">Comparativo</th></tr></thead><tbody id="dailyRanking"><tr><td class="ranking-empty" colspan="5">Aguardando dados.</td></tr></tbody></table></div></section>
+</div>
+<div id="panel-maintenance" class="tab-panel" role="tabpanel" aria-labelledby="tab-maintenance" hidden>
+<div class="intro"><div><h2>Manutenção dos poços</h2><span class="muted">Histórico técnico, períodos de parada e acompanhamento de retornos.</span></div></div>
+<section class="card"><div class="maintenance-filters"><label><span class="filter-label">Poço</span><select id="maintenanceWell" onchange="maintenanceApply()"><option value="">Todos os poços</option></select></label><label><span class="filter-label">Situação da parada</span><select id="maintenanceState" onchange="maintenanceApply()"><option value="">Todas</option><option>Em manutenção</option><option>Concluída</option><option>Programada</option><option>Datas incompletas/inválidas</option></select></label><button onclick="loadMaintenanceData()">Atualizar manutenção</button></div><p class="filter-note">A situação filtra os períodos de parada e seus indicadores. O histórico técnico mostra todos os registros do poço selecionado.</p></section>
+<p class="maintenance-status" role="status">Carregando dados de manutenção…</p><p class="muted">Fonte: <a class="maintenance-source" href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQzVEGWOj1yLfJ6R5T_c07PxKhoLLinFnLyziQwMYIIXQKUVPL7T1qwhMjkoCKrkBaas8dmw7DUXPeV/pubhtml" target="_blank" rel="noopener">planilha de manutenção · Base de dados e Análise</a></p>
+<section class="kpis"><div class="card kpi"><span>Registros técnicos</span><strong id="maintenanceRecords">—</strong><small>Base de dados · registros do poço</small></div><div class="card kpi"><span>Em manutenção agora</span><strong id="maintenanceStopped">—</strong><small>Poços com parada em aberto</small></div><div class="card kpi"><span>Dias-poço parados</span><strong id="maintenanceDays">—</strong><small>Acumulado dos períodos filtrados</small></div><div class="card kpi"><span>Paradas concluídas</span><strong id="maintenanceFinished">—</strong><small>Com retorno informado</small></div></section>
+<section class="card chart-card"><div class="chart-head"><div><h3>DIAS PARADOS POR POÇO</h3><p>Ranking do maior para o menor tempo de parada. Os rótulos identificam o poço e a situação; o valor à direita mostra os dias acumulados.</p></div></div><p class="empty maintenance-no-data" hidden>Nenhuma parada registrada para os filtros selecionados.</p><div class="maintenance-legend"><span><i class="legend-completed"></i>Paradas concluídas</span><span><i class="legend-ongoing"></i>Com parada em aberto</span></div><div class="maintenance-chart-scroll"><div class="maintenance-chart"><canvas id="maintenanceDaysChart" role="img" aria-label="Dias acumulados de parada por poço"></canvas></div></div><p class="chart-foot">Dias corridos: diferença entre início e retorno, sem contar o dia do retorno. Paradas sem retorno são contadas até hoje (Fortaleza). Totais somam dias por poço e unem períodos sobrepostos; dois poços parados no mesmo dia contam dois dias-poço.</p></section>
+<section class="card chart-card"><div class="chart-head"><div><h3>LINHA DO TEMPO DAS PARADAS</h3><p>Cada barra mostra um período real no calendário. Início e retorno aparecem ao lado do poço, e a duração à direita. Paradas abertas terminam na data de hoje.</p></div></div><div class="maintenance-legend"><span><i class="legend-completed"></i>Concluída</span><span><i class="legend-ongoing"></i>Em manutenção</span></div><div class="maintenance-chart-scroll"><div class="maintenance-timeline"><canvas id="maintenanceTimeline" role="img" aria-label="Linha do tempo dos períodos de manutenção"></canvas></div></div></section>
+<section class="card ranking-card"><h3>Períodos de parada e retorno</h3><div class="ranking-table-wrap maintenance-table"><table id="maintenancePeriods" class="ranking-table"></table></div><p class="filter-note">Dias corridos: diferença entre início e retorno, sem contar o dia do retorno. Paradas sem retorno são contadas até hoje (Fortaleza). Totais somam dias por poço e unem períodos sobrepostos; dois poços parados no mesmo dia contam dois dias-poço.</p></section>
+<section class="card ranking-card"><h3>Base de dados · Histórico completo de manutenção</h3><p class="muted">Poço, data de manutenção e data da nova manutenção aparecem primeiro, seguidos dos demais campos da planilha. As datas são exibidas conforme preenchidas na fonte; células vazias aparecem como “—”.</p><div class="ranking-table-wrap maintenance-table"><table id="maintenanceHistory" class="ranking-table"></table></div><p class="filter-note">As datas de “Manutenção” e “Nova manutenção” pertencem ao histórico técnico. Os dias parados são calculados exclusivamente com “Início” e “Fim” da aba Análise.</p></section>
+</div>
+<div id="panel-meters" class="tab-panel" role="tabpanel" aria-labelledby="tab-meters" hidden>
+<div class="intro"><div><h2>Medidores e conexões</h2><span class="muted">Distribuição dos poços entre R2 e R3 e situação das paradas.</span></div></div>
+<p class="maintenance-status" role="status">Carregando dados de manutenção…</p><p class="muted">Fonte: <a class="maintenance-source" href="https://docs.google.com/spreadsheets/d/e/2PACX-1vQzVEGWOj1yLfJ6R5T_c07PxKhoLLinFnLyziQwMYIIXQKUVPL7T1qwhMjkoCKrkBaas8dmw7DUXPeV/pubhtml" target="_blank" rel="noopener">planilha de manutenção · Base de dados e Análise</a></p><button onclick="loadMaintenanceData()">Atualizar medidores</button>
+<div class="maintenance-warning">A planilha informa o Poço 04 duas vezes no R3. Ele é exibido uma vez no total de conexões. A ausência de uma parada em aberto na planilha não confirma o funcionamento do poço.</div>
+<section class="kpis"><div class="card kpi"><span>Medidor R2</span><strong id="meterCountR2">—</strong><small>Conexões informadas na planilha</small></div><div class="card kpi"><span>Medidor R3</span><strong id="meterCountR3">—</strong><small>Conexões únicas informadas</small></div><div class="card kpi"><span>Em manutenção agora</span><strong id="meterStopped">—</strong><small>Poços com parada em aberto</small></div><div class="card kpi"><span>Dias-poço parados</span><strong id="meterDays">—</strong><small>Histórico acumulado de todos os poços</small></div></section>
+<section class="card meter-network-card"><div class="chart-head"><div><h3>MAPA DE CONEXÕES DOS POÇOS</h3><p>Cada linha representa a ligação informada na planilha. A situação de manutenção aparece dentro de cada poço.</p></div></div><div class="maintenance-legend"><span><i style="background:#c43e3e"></i>R2 · conexões em vermelho</span><span><i style="background:#168058"></i>R3 · conexões em verde</span></div><div id="meterConnections" class="meter-connections"></div></section><div class="meter-grid"><section class="card"><h3>Medidor R2</h3><div id="meterR2" class="meter-wells"></div></section><section class="card"><h3>Medidor R3</h3><div id="meterR3" class="meter-wells"></div></section></div>
+<section class="card ranking-card"><h3>Paradas por poço e medidor</h3><div class="ranking-table-wrap maintenance-table"><table id="meterPeriods" class="ranking-table"></table></div><p class="filter-note">Dias corridos: diferença entre início e retorno, sem contar o dia do retorno. Paradas sem retorno são contadas até hoje (Fortaleza). Totais somam dias por poço e unem períodos sobrepostos; dois poços parados no mesmo dia contam dois dias-poço.</p></section></div></div></main><footer>Fazenda Oasis · Monitoramento de poços · L/H</footer><div id="toastContainer" aria-live="polite"></div><script>
         const PUBLISHED_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pub?output=csv';
         const PUBLISHED_SHEET_HTML_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSafB5fd5osyELyMS1T-pVO-WbL25l53ICs1dmVMgByrAlQsqSHT2YscIE-ClYrJvzPS-dGZSp25ysi/pubhtml';
 
@@ -279,9 +315,33 @@ main>section.card{padding:25px 28px;border-top:3px solid #33835d;box-shadow:0 4p
 }
 
 
-const selection = { poco: new Set(), semana: new Set(), mes: new Set(), ano: new Set() };
+const tabSelections = Object.fromEntries(['overview','daily'].map(tab=>[tab,{poco:new Set(),semana:new Set(),mes:new Set(),ano:new Set()}]));
+let activeDashboardTab='overview';
+let selection=tabSelections.overview;
+const dailyDateRange={start:'',end:''};
 const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 let monthlyInstance = null;
+let dailyInstance = null;
+let rankingInstance = null;
+let dailyRows = [];
+function selectDailyDate(){updateDailySummary();updateChart();}
+function switchDashboardTab(tab) {
+ if(['maintenance','meters'].includes(tab)){openMaintenanceTab(tab);return;}
+ document.getElementById('panel-maintenance').hidden=true;document.getElementById('panel-meters').hidden=true;
+ document.getElementById('tab-maintenance').setAttribute('aria-selected','false');document.getElementById('tab-meters').setAttribute('aria-selected','false');
+ document.querySelectorAll('.export-btn').forEach(button=>button.hidden=false);
+ const daily=tab==='daily';
+ activeDashboardTab=daily?'daily':'overview';
+ selection=tabSelections[activeDashboardTab];
+ document.getElementById(daily?'dailyFilterSlot':'overviewFilterSlot').append(document.getElementById('tabFilters'));
+ document.querySelectorAll('details[open]').forEach(details=>details.open=false);
+ document.getElementById('panel-overview').hidden=daily;
+ document.getElementById('panel-daily').hidden=!daily;
+ document.getElementById('tab-overview').setAttribute('aria-selected',String(!daily));
+ document.getElementById('tab-daily').setAttribute('aria-selected',String(daily));
+ renderFilters();applyFilters();
+ requestAnimationFrame(()=>{const panel=document.getElementById(daily?'panel-daily':'panel-overview');[chartInstance,monthlyInstance,dailyInstance,rankingInstance].forEach(chart=>{if(chart&&panel.contains(chart.canvas)){chart.resize();chart.update('none');}});});
+}
 function weekInfo(date) {
  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
@@ -296,33 +356,90 @@ function initFiltersUI() {
 function renderFilters() {
  const config = [{key:'poco',label:'Poços',values:[...new Set(rawData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}))},{key:'semana',label:'Semanas',values:[...new Set(rawData.map(r=>String(r.semana)))].sort((a,b)=>a-b)},{key:'mes',label:'Meses',values:[...new Set(rawData.map(r=>String(r.mes)))].sort((a,b)=>a-b)},{key:'ano',label:'Anos',values:[...new Set(rawData.map(r=>String(r.ano)))].sort((a,b)=>b-a)}];
  const container = document.getElementById('filters'); container.replaceChildren();
- config.forEach(({key,label,values})=>{
+ config.filter(item=>activeDashboardTab!=='daily'||!['semana','mes'].includes(item.key)).forEach(({key,label,values})=>{
   const wrap=document.createElement('div'); const title=document.createElement('span'); title.className='filter-label';title.textContent=label;wrap.append(title);
   const details=document.createElement('details');const summary=document.createElement('summary');summary.id='summary-'+key;details.append(summary);
   const options=document.createElement('div'); options.className='options';const actions=document.createElement('div');actions.className='option-actions';
   ['Marcar todos','Limpar'].forEach((text,i)=>{const btn=document.createElement('button');btn.textContent=text;btn.onclick=()=>{selection[key]=new Set(i===0?values:[]);options.querySelectorAll('input').forEach(input=>input.checked=selection[key].has(input.value));applyFilters();};actions.append(btn);});options.append(actions);
   values.forEach(value=>{const lab=document.createElement('label');const input=document.createElement('input');input.type='checkbox';input.value=value;input.checked=selection[key].has(value);input.onchange=()=>{input.checked?selection[key].add(value):selection[key].delete(value);applyFilters();};lab.append(input);if(key==='poco'){const swatch=document.createElement('span');swatch.className='filter-swatch';swatch.style.backgroundColor=getWellColor(values.indexOf(value));swatch.setAttribute('aria-hidden','true');lab.append(swatch);}lab.append(document.createTextNode(key==='mes'?monthNames[Number(value)-1]:key==='semana'?'Semana '+value:value));options.append(lab);});
   details.append(options);wrap.append(details);container.append(wrap);
- }); updateSummaries();
+ });
+ if(activeDashboardTab==='daily'){
+  container.style.gridTemplateColumns='repeat(auto-fit,minmax(170px,1fr))';
+  for(const [key,label] of [['start','Data inicial'],['end','Data final']]){
+   const wrap=document.createElement('div'),title=document.createElement('label'),input=document.createElement('input');
+   title.className='filter-label';title.htmlFor='daily-'+key;title.textContent=label;
+   input.type='date';input.id='daily-'+key;input.value=dailyDateRange[key];input.style.cssText='width:100%;min-height:49px;padding:12px;border:1px solid #d5e3d9;border-radius:10px;background:#f8fbf9;color:#183e30';
+   input.onchange=()=>{dailyDateRange[key]=input.value;const other=document.getElementById('daily-'+(key==='start'?'end':'start'));if(key==='start')other.min=input.value;else other.max=input.value;applyFilters();};
+   if(key==='start')input.max=dailyDateRange.end;else input.min=dailyDateRange.start;
+   wrap.append(title,input);container.append(wrap);
+  }
+  const fields=[...container.children];container.replaceChildren(fields[0],fields[2],fields[3],fields[1]);
+ }else container.style.gridTemplateColumns='';
+ updateSummaries();
 }
-function updateSummaries(){Object.keys(selection).forEach(key=>{const n=selection[key].size;document.getElementById('summary-'+key).textContent=n?n+' selecionado'+(n>1?'s':''):'Todas as opções';});}
-function resetFilters(){Object.values(selection).forEach(s=>s.clear());renderFilters();applyFilters();}
-function applyFilters(){filteredData=rawData.filter(r=>Object.entries(selection).every(([key,set])=>!set.size||set.has(String(r[key])))); updateSummaries();updateKPIs();updateChart();}
+function updateSummaries(){Object.keys(selection).forEach(key=>{const n=selection[key].size;const summary=document.getElementById('summary-'+key);if(summary)summary.textContent=n?n+' selecionado'+(n>1?'s':''):'Todas as opções';});}
+function resetFilters(){Object.values(selection).forEach(s=>s.clear());if(activeDashboardTab==='daily'){dailyDateRange.start='';dailyDateRange.end='';}renderFilters();applyFilters();}
+function applyFilters(){if(['maintenance','meters'].includes(activeDashboardTab)){renderMaintenance();return;}filteredData=rawData.filter(r=>Object.entries(selection).every(([key,set])=>(activeDashboardTab==='daily'&&['semana','mes'].includes(key))||!set.size||set.has(String(r[key])))&&(activeDashboardTab!=='daily'||((!dailyDateRange.start||r.dateStr>=dailyDateRange.start)&&(!dailyDateRange.end||r.dateStr<=dailyDateRange.end))));updateSummaries();updateKPIs();updateChart();}
 function updateKPIs(){
  const count=filteredData.length;const total=filteredData.reduce((s,r)=>s+r.vazao,0);const max=filteredData.reduce((a,b)=>!a||b.vazao>a.vazao?b:a,null);
  document.getElementById('avg').textContent=count?Math.round(total/count).toLocaleString('pt-BR')+' L/H':'—';document.getElementById('max').textContent=max?max.vazao.toLocaleString('pt-BR')+' L/H':'—';document.getElementById('maxWell').textContent=max?max.poco+' · '+max.dateDisplay:'Sem medições';document.getElementById('wells').textContent=new Set(filteredData.map(r=>r.poco)).size;document.getElementById('records').textContent=count.toLocaleString('pt-BR');
  const sorted=[...filteredData].sort((a,b)=>a.dateObj-b.dateObj);document.getElementById('dateRange').textContent=count?sorted[0].dateDisplay+' a '+sorted[count-1].dateDisplay:'Nenhuma medição no período';
  document.getElementById('reportMeta').textContent=Object.entries(selection).map(([key,set])=>({poco:'Poços',semana:'Semanas',mes:'Meses',ano:'Anos'}[key])+': '+(set.size?[...set].join(', '):'Todos')).join(' · ')+' | Emissão: '+new Date().toLocaleString('pt-BR');
+ updateDailySummary();
+}
+function updateDailySummary(){
+ const dates=[...new Set(filteredData.map(row=>row.dateStr))].sort();
+ dailyRows=filteredData;
+ const average=dailyRows.length?dailyRows.reduce((sum,row)=>sum+row.vazao,0)/dailyRows.length:0;
+ const byWell=new Map();
+ dailyRows.forEach(row=>{
+  if(!byWell.has(row.poco))byWell.set(row.poco,new Map());
+  const byDate=byWell.get(row.poco);
+  if(!byDate.has(row.dateStr))byDate.set(row.dateStr,[]);
+  byDate.get(row.dateStr).push(row.vazao);
+ });
+ const ranking=[...byWell].map(([well,byDate])=>{
+  const dailyAverages=[...byDate.values()].map(values=>values.reduce((sum,value)=>sum+value,0)/values.length);
+  return {well,average:dailyAverages.reduce((sum,value)=>sum+value,0)/dailyAverages.length,days:dailyAverages.length};
+ }).sort((a,b)=>b.average-a.average||a.well.localeCompare(b.well,'pt-BR',{numeric:true}));
+ const number=value=>Math.round(value).toLocaleString('pt-BR');
+ document.getElementById('dailyAvg').textContent=dailyRows.length?number(average)+' L/h':'—';
+ document.getElementById('dailyTop').textContent=ranking[0]?.well||'—';
+ document.getElementById('dailyTopValue').textContent=ranking.length?number(ranking[0].average)+' L/h de média diária':'Sem medições';
+ document.getElementById('dailyWells').textContent=String(ranking.length);
+ document.getElementById('dailyDays').textContent=dailyRows.length.toLocaleString('pt-BR');
+ document.getElementById('dailyDateRange').textContent=dates.length?formatDateBR(new Date(dates[0]+'T00:00:00'))+' a '+formatDateBR(new Date(dates[dates.length-1]+'T00:00:00')):'Nenhuma medição no período';
+ updateDailyRankingChart(ranking);
+ const tbody=document.getElementById('dailyRanking');
+ tbody.replaceChildren();
+ if(!ranking.length){
+  const row=document.createElement('tr'),cell=document.createElement('td');
+  cell.className='ranking-empty';cell.colSpan=5;cell.textContent='Nenhuma medição para os filtros selecionados.';
+  row.append(cell);tbody.append(row);return;
+ }
+ const highest=ranking[0].average||1;
+ ranking.forEach((item,index)=>{
+  const row=document.createElement('tr');
+  const rank=document.createElement('td');rank.className='rank-number';rank.textContent=String(index+1).padStart(2,'0');
+  const well=document.createElement('td');well.textContent=item.well;
+  const value=document.createElement('td');value.className='ranking-value';value.textContent=number(item.average)+' L/h';
+  const days=document.createElement('td');days.textContent=item.days.toLocaleString('pt-BR');
+  const barCell=document.createElement('td');barCell.className='ranking-bar-cell';
+  const track=document.createElement('div');track.className='ranking-bar-track';track.setAttribute('role','img');track.setAttribute('aria-label','Comparativo: '+Math.round(item.average/highest*100)+'% do primeiro colocado');
+  const bar=document.createElement('div');bar.className='ranking-bar';bar.style.width=Math.max(2,item.average/highest*100)+'%';track.append(bar);barCell.append(track);
+  row.append(rank,well,value,days,barCell);tbody.append(row);
+ });
 }
 function aggregate(period){
- const groups=new Map();filteredData.forEach(r=>{const w=weekInfo(r.dateObj);const key=period==='week'?w.key:r.ano+'-'+String(r.mes).padStart(2,'0');if(!groups.has(key))groups.set(key,{label:period==='week'?'Sem. '+w.week+' / '+w.year:monthNames[r.mes-1].slice(0,3)+' / '+r.ano,values:new Map()});const values=groups.get(key).values;if(!values.has(r.poco))values.set(r.poco,[]);values.get(r.poco).push(r.vazao);});return [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,g])=>({key,...g}));
+ const groups=new Map();filteredData.forEach(r=>{const w=weekInfo(r.dateObj);const key=period==='day'?r.dateStr:period==='week'?w.key:r.ano+'-'+String(r.mes).padStart(2,'0');if(!groups.has(key))groups.set(key,{label:period==='day'?r.dateDisplay:period==='week'?'Sem. '+w.week+' / '+w.year:monthNames[r.mes-1].slice(0,3)+' / '+r.ano,values:new Map()});const values=groups.get(key).values;if(!values.has(r.poco))values.set(r.poco,[]);values.get(r.poco).push(r.vazao);});return [...groups.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,g])=>({key,...g}));
 }
 function chartConfig(type, groups, wells, period = 'week') {
  const allWells = [...new Set(rawData.map(r => r.poco))].sort((a,b) => a.localeCompare(b,'pt-BR',{numeric:true}));
  return {
-  type: 'line',
+  type,
   data: {
-   labels: groups.map(g => period === 'week' ? g.key.replace('-S',' / S') : g.label.toUpperCase()),
+   labels: groups.map(g => period === 'week' ? g.key.replace('-S',' / S') : period === 'day' ? g.label : g.label.toUpperCase()),
    datasets: wells.map(well => {
     const idx = allWells.indexOf(well), color = getWellColor(idx);
     return { label: well, data: groups.map(g => {
@@ -346,7 +463,7 @@ function chartConfig(type, groups, wells, period = 'week') {
     tooltip: { callbacks: { label: c => c.dataset.label+': '+c.parsed.y.toLocaleString('pt-BR')+' L/h' } },
     datalabels: {
      display: c => c.dataset.data[c.dataIndex] !== null,
-     anchor: 'center', align: 'top', offset: 3, rotation: 0, clip: false,
+     anchor: type==='bar'?'end':'center', align: 'top', offset: 3, rotation: 0, clip: false,
      color: c => c.dataset.borderColor, backgroundColor: '#ffffffed',
      borderColor: c => c.dataset.borderColor+'60', borderWidth: .5, borderRadius: 0,
      padding: {top: 1, bottom: 1, left: 2, right: 2},
@@ -355,19 +472,45 @@ function chartConfig(type, groups, wells, period = 'week') {
     }
    },
    scales: {
-    x: { title: {display: true, text: period === 'week' ? 'SEMANA DO ANO (ISO) / ANO' : 'MÊS DE REFERÊNCIA', color: '#344453', font: {size: 10, weight:'bold'}}, grid: {display:false}, border: {display:false}, ticks: {autoSkip:false, color:'#344453', font:{size:10,weight:'600'}, maxRotation:0} },
-    y: { title: {display:true,text: period === 'week' ? 'VAZÃO MÉDIA SEMANAL (L/h)' : 'VAZÃO MÉDIA MENSAL (L/h)',color:'#344453',font:{size:10,weight:'bold'}},beginAtZero:true,grace:'12%',grid:{color:'#eef1f5',drawTicks:false},border:{display:false},ticks:{maxTicksLimit:8,color:'#7a8692',font:{size:10},callback:v=>v.toLocaleString('pt-BR')} }
+    x: { title: {display: true, text: period === 'week' ? 'SEMANA DO ANO (ISO) / ANO' : period === 'day' ? 'DIA DA MEDIÇÃO' : 'MÊS DE REFERÊNCIA', color: '#344453', font: {size: 10, weight:'bold'}}, grid: {display:false}, border: {display:false}, ticks: {autoSkip:period==='day', maxRotation:period==='day'?45:0, color:'#344453', font:{size:10,weight:'600'}} },
+    y: { title: {display:true,text: period === 'week' ? 'VAZÃO MÉDIA SEMANAL (L/h)' : period === 'day' ? 'VAZÃO MÉDIA DIÁRIA (L/h)' : 'VAZÃO MÉDIA MENSAL (L/h)',color:'#344453',font:{size:10,weight:'bold'}},beginAtZero:true,grace:'12%',grid:{color:'#eef1f5',drawTicks:false},border:{display:false},ticks:{maxTicksLimit:8,color:'#7a8692',font:{size:10},callback:v=>v.toLocaleString('pt-BR')} }
    }
   }
  };
 }
+function dailyBarConfig(){
+ const wells=[...new Set(dailyRows.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+ const groups=aggregate('day');
+ const config=chartConfig('bar',groups,wells,'day');
+ config.options.devicePixelRatio=1;
+ config.options.scales.x.ticks.maxTicksLimit=40;
+ config.options.scales.x.title.text='DIA DA MEDIÇÃO';
+ config.options.scales.x.stacked=false;
+ config.options.scales.x.ticks.autoSkip=true;
+ config.options.scales.x.ticks.maxRotation=0;
+ config.options.scales.y.grace='20%';
+ config.data.datasets.forEach(dataset=>{dataset.skipNull=true;dataset.borderRadius=5;dataset.maxBarThickness=65;});
+ return config;
+}
+function updateDailyRankingChart(ranking){
+ if(rankingInstance)rankingInstance.destroy();
+ rankingInstance=null;
+ if(activeDashboardTab!=='daily')return;
+ document.getElementById('rankingEmpty').classList.toggle('hidden',!!ranking.length);
+ document.getElementById('rankingPlot').style.height=Math.max(300,ranking.length*54)+'px';
+ rankingInstance=new Chart(document.getElementById('rankingChart'),{
+  type:'bar',data:{labels:ranking.map((item,i)=>(i+1)+'º · '+item.well),datasets:[{label:'Vazão média diária',data:ranking.map(item=>item.average),backgroundColor:ranking.map((item,i)=>i===0?'#08714f':'#62a884'),borderRadius:5,maxBarThickness:30}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{right:95,top:15,bottom:10}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x.toLocaleString('pt-BR',{maximumFractionDigits:0})+' L/h'}},datalabels:{anchor:'end',align:'right',clip:false,color:'#164e37',font:{weight:'bold',size:11},formatter:value=>Math.round(value).toLocaleString('pt-BR')+' L/h'}},scales:{x:{beginAtZero:true,grace:'20%',title:{display:true,text:'VAZÃO MÉDIA NO DIA (L/h)'},ticks:{callback:value=>value.toLocaleString('pt-BR')}},y:{grid:{display:false}}}}
+ });
+}
 function renderWellLegends() {
  const allWells=[...new Set(rawData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
- for(const [id,chart] of [['weeklyLegend',chartInstance],['monthlyLegend',monthlyInstance]]) {
+ for(const [id,chart] of [['weeklyLegend',chartInstance],['monthlyLegend',monthlyInstance],['dailyLegend',dailyInstance]]) {
   const container=document.getElementById(id);container.replaceChildren();
-  const note=document.createElement('span');note.className='well-legend-note';note.textContent='POÇOS E CORES · Clique para ocultar ou exibir a linha';container.append(note);
+  if(!chart)continue;
+  const note=document.createElement('span');note.className='well-legend-note';note.textContent='POÇOS E CORES · Clique para ocultar ou exibir o poço';container.append(note);
   chart.data.datasets.forEach((dataset,index)=>{
-   const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-pressed',String(chart.isDatasetVisible(index)));btn.title=dataset.label+' — mostrar ou ocultar a linha';
+   const btn=document.createElement('button');btn.type='button';btn.setAttribute('aria-pressed',String(chart.isDatasetVisible(index)));btn.title=dataset.label+' — mostrar ou ocultar o poço';
    const swatch=document.createElement('span');swatch.className='well-swatch';swatch.setAttribute('aria-hidden','true');swatch.style.setProperty('--well-color',dataset.borderColor);
    if(Math.floor(allWells.indexOf(dataset.label)/WELL_COLORS.length)%2)swatch.style.borderTopStyle='dashed';
    btn.append(swatch,document.createTextNode(dataset.label));btn.onclick=()=>{const visible=!chart.isDatasetVisible(index);chart.setDatasetVisibility(index,visible);btn.setAttribute('aria-pressed',String(visible));chart.update('none');};container.append(btn);
@@ -377,13 +520,21 @@ function renderWellLegends() {
 }
 function updateChart(){
  if(chartInstance)chartInstance.destroy();if(monthlyInstance)monthlyInstance.destroy();
+ if(dailyInstance)dailyInstance.destroy();
  const wells=[...new Set(filteredData.map(r=>r.poco))].sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));const weekly=aggregate('week'),monthly=aggregate('month');
  document.getElementById('weeklyEmpty').classList.toggle('hidden',!!filteredData.length);document.getElementById('monthlyEmpty').classList.toggle('hidden',!!filteredData.length);
- document.getElementById('weeklyPlot').style.width=Math.max(850,weekly.length*82)+'px';document.getElementById('monthlyPlot').style.width=Math.max(850,monthly.length*105)+'px';
- chartInstance=new Chart(document.getElementById('weeklyChart'),chartConfig('line',weekly,wells));monthlyInstance=new Chart(document.getElementById('monthlyChart'),chartConfig('line',monthly,wells,'month'));
+ document.getElementById('dailyEmpty').classList.toggle('hidden',!!dailyRows.length);
+ document.getElementById('weeklyPlot').style.width=Math.max(850,weekly.length*82)+'px';document.getElementById('monthlyPlot').style.width=Math.max(850,monthly.length*105)+'px';document.getElementById('dailyPlot').style.width=Math.min(14000,Math.max(650,aggregate('day').length*Math.max(110,wells.length*40)))+'px';
+ chartInstance=null;monthlyInstance=null;dailyInstance=null;
+ if(activeDashboardTab==='daily'){
+  dailyInstance=new Chart(document.getElementById('dailyChart'),dailyBarConfig());
+ }else{
+  chartInstance=new Chart(document.getElementById('weeklyChart'),chartConfig('line',weekly,wells));
+  monthlyInstance=new Chart(document.getElementById('monthlyChart'),chartConfig('line',monthly,wells,'month'));
+ }
  renderWellLegends();
 }
-function reloadData(){loadDataFromSheet();}
+function reloadData(){loadDataFromSheet();loadMaintenanceData();}
 // Relatórios independentes da largura da tela e da rolagem do painel.
 const REPORT = { width: 1920, height: 1280, periodsPerPage: 12, wellsPerPage: 7 };
 function reportPlan() {
@@ -491,4 +642,4 @@ async function exportDashboard(format) {
  }catch(err){console.error(err);showToast('Não foi possível gerar o relatório. Tente novamente.','error');}
  finally{controls.forEach((c,i)=>c.disabled=disabledStates[i]);buttons.forEach((b,i)=>{b.textContent=labels[i];});}
 }
-</script></body></html>
+</script><script src="maintenance.js"></script></body></html>
