@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 const script=await readFile(new URL('../tanks.js',import.meta.url),'utf8');
 const nodes=new Map();
-function element(){return {children:[],style:{},attributes:{},value:'',focus(){},checkValidity(){return this.value===''||(Number(this.value)>=0&&Number(this.value)<=24);},reportValidity(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
+function element(){return {children:[],style:{},parentElement:{},attributes:{},value:'',focus(){},checkValidity(){return this.value===''||(Number(this.value)>=0&&Number(this.value)<=24);},reportValidity(){},append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attributes[key]=value;}};}
 function get(id){if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);}
 const charts=[];
 const storage=new Map();
@@ -128,4 +128,22 @@ assert.equal(vm.runInContext('Object.keys(tankDaySplits).length',context),1,'Sem
 const removeSplit=get('tankSplitHistory').children[1].children[0].children[5].children[0].children[1];removeSplit.onclick();
 assert.equal(calculate(context.rawData)[0].total,26000,'Remover divisão restaura histórico e ajuste de horas de 2h');
 assert.equal(calculate(context.rawData)[1].total,null);
-console.log('OK: histórico, horas individuais, divisão 14h/10h, desligamento, edição, persistência e volumes sem duplicação.');
+context.rawData=[row(1,'2026-11-01',100),row(7,'2026-11-02',200),row(8,'2026-11-02',0)];
+vm.runInContext('tankRoutes=[];tankDaySplits={};tankHourSettings={wells:{},days:{}}',context);
+for(const id of ['tankStart','tankEnd','tankExactDate'])get(id).checkValidity=()=>true;
+get('tankStart').value='2026-11-01';get('tankEnd').value='2026-11-02';get('tankExactDate').value='2026-11-02';get('tankHours').value='24';
+vm.runInContext('tankFilterChanged()',context);
+assert.equal(charts.at(-2).data.datasets.length,0,'Poço com medição apenas no dia anterior não aparece');
+assert.equal(charts.at(-1).data.datasets.length,2,'Exibe somente poços medidos no dia, preservando vazão zero registrada');
+assert.equal(get('tankPlot03').parentElement.hidden,true,'Oculta gráfico sem dados');
+assert.equal(get('tankTotal03').textContent,'—','Sem reaproveitar volume de outra data');
+assert.equal(get('tankTotal04').textContent,'4.800 L');
+get('tankExactDate').value='2026-11-04';vm.runInContext('tankFilterChanged()',context);
+assert.equal(charts.at(-2).data.datasets.length,0);
+assert.equal(charts.at(-1).data.datasets.length,0);
+assert.equal(get('tankPlot04').parentElement.hidden,true);
+assert.match(get('tankEmpty04').textContent,/04\/11\/2026/,'Explica ausência de vazão na data escolhida');
+get('tankExactDate').value='';vm.runInContext('tankFilterChanged()',context);
+assert.equal(charts.at(-2).data.datasets.length,1,'Limpar data específica volta ao intervalo');
+assert.equal(get('tankPlot03').parentElement.hidden,false);
+console.log('OK: histórico, divisão diária, horas individuais e consulta de data exata sem poços ou gráficos de outras datas.');

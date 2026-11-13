@@ -1,5 +1,5 @@
 const TANK_CONFIG=[{id:'03',name:'Tanque 03',wells:[1,3,4,5,6,11,12],color:'#177c9a'},{id:'04',name:'Tanque 04',wells:[7,8,9,10,14],color:'#25845c'}];
-const tankFilters={start:'',end:'',hours:24};
+const tankFilters={start:'',end:'',day:'',hours:24};
 let tankCharts=[];
 let tankHourSettings={wells:{},days:{}};
 const tankEditorDates={};
@@ -63,12 +63,12 @@ function calculateTankData(rows,start='',end='',hours=24,hourSettings=tankHourSe
  });
 }
 function tankFilterChanged(){
- const start=document.getElementById('tankStart'),end=document.getElementById('tankEnd'),hours=document.getElementById('tankHours');
- if(!start.checkValidity()||!end.checkValidity()||!hours.checkValidity()){document.getElementById('tankFilterError').textContent='Confira as datas e informe de 0 a 24 horas por dia.';return;}
- if(start.value&&end.value&&start.value>end.value){document.getElementById('tankFilterError').textContent='A data final deve ser igual ou posterior à data inicial.';return;}
- tankFilters.start=start.value;tankFilters.end=end.value;tankFilters.hours=Number(hours.value);document.getElementById('tankFilterError').textContent='';renderTanks();
+ const start=document.getElementById('tankStart'),end=document.getElementById('tankEnd'),day=document.getElementById('tankExactDate'),hours=document.getElementById('tankHours');
+ if(!start.checkValidity()||!end.checkValidity()||!day.checkValidity()||!hours.checkValidity()){document.getElementById('tankFilterError').textContent='Confira as datas e informe de 0 a 24 horas por dia.';return;}
+ if(!day.value&&start.value&&end.value&&start.value>end.value){document.getElementById('tankFilterError').textContent='A data final deve ser igual ou posterior à data inicial.';return;}
+ tankFilters.start=start.value;tankFilters.end=end.value;tankFilters.day=day.value;tankFilters.hours=Number(hours.value);document.getElementById('tankFilterError').textContent='';renderTanks();
 }
-function resetTankFilters(){tankFilters.start='';tankFilters.end='';tankFilters.hours=24;document.getElementById('tankStart').value='';document.getElementById('tankEnd').value='';document.getElementById('tankHours').value='24';document.getElementById('tankFilterError').textContent='';renderTanks();}
+function resetTankFilters(){tankFilters.start='';tankFilters.end='';tankFilters.day='';tankFilters.hours=24;document.getElementById('tankStart').value='';document.getElementById('tankEnd').value='';document.getElementById('tankExactDate').value='';document.getElementById('tankHours').value='24';document.getElementById('tankFilterError').textContent='';renderTanks();}
 function tankWellColor(well){return WELL_COLORS[(well-1)%WELL_COLORS.length];}
 function tankText(id,value){document.getElementById(id).textContent=value;}
 function renderTankDailyEditor(tank){
@@ -95,8 +95,8 @@ function drawTank(tank){
 function renderTanks(){
  if(activeDashboardTab!=='tanks')return;tankCharts.forEach(chart=>chart.destroy());tankCharts=[];
  renderTankRoutes();renderTankSplits();
- const results=calculateTankData(rawData,tankFilters.start,tankFilters.end,tankFilters.hours);
- const dates=results[0].daily.map(day=>day.date);tankText('tankPeriod',dates.length?tankDate(dates[0])+' a '+tankDate(dates.at(-1)):'Nenhum dado no período');
+ const results=calculateTankData(rawData,tankFilters.day||tankFilters.start,tankFilters.day||tankFilters.end,tankFilters.hours);
+ const dates=results[0].daily.map(day=>day.date);tankText('tankPeriod',tankFilters.day?tankDate(tankFilters.day)+(dates.length?' · somente este dia':' · nenhuma medição registrada'):dates.length?tankDate(dates[0])+' a '+tankDate(dates.at(-1)):'Nenhum dado no período');
  tankText('tankEstimateNote','Estimativa: vazão média medida no dia (L/h) × horas de funcionamento do poço naquele dia. Prioridade: divisão diária entre tanques → ajuste do dia → padrão do poço → padrão geral ('+tankFilters.hours+' h/dia). O destino é definido pelo histórico de direcionamentos na data da medição. Fora dos períodos cadastrados, usa-se o destino padrão atual.');
  for(const tank of results){
   const id=tank.id,known=tank.total!==null;
@@ -104,6 +104,8 @@ function renderTanks(){
   tankText('tankSources'+id,tank.wells.length?'Poços com vazão registrada neste tanque no período: '+tank.wells.map(well=>String(well.well).padStart(2,'0')).join(', ')+'.':'Sem poços com vazão registrada para este tanque no período.');
   drawTank(tank);
   document.getElementById('tankEmpty'+id).hidden=known;
+  document.getElementById('tankEmpty'+id).textContent=tankFilters.day?'Nenhuma vazão registrada para este tanque em '+tankDate(tankFilters.day)+'. Nenhum poço é exibido.':'Nenhuma medição disponível para este tanque no período selecionado.';
+  document.getElementById('tankPlot'+id).parentElement.hidden=!known;
   document.getElementById('tankPlot'+id).style.width=Math.min(14000,Math.max(700,tank.daily.length*75))+'px';
   const datasets=tank.wells.map(well=>({label:'Poço '+String(well.well).padStart(2,'0'),data:tank.daily.map(day=>day.wells.find(item=>item.well===well.well)?.volume??null),backgroundColor:tankWellColor(well.well),borderRadius:2,maxBarThickness:55}));
   tankCharts.push(new Chart(document.getElementById('tankChart'+id),{type:'bar',data:{labels:tank.daily.map(day=>tankDate(day.date)),datasets},options:{responsive:true,maintainAspectRatio:false,devicePixelRatio:1,animation:false,layout:{padding:{top:40,right:25,left:10}},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:18}},datalabels:{anchor:'end',align:'top',color:'#234e3a',font:{size:10,weight:'bold'},clip:false,display:c=>{const day=tank.daily[c.dataIndex],last=tank.wells.findLastIndex(w=>day.wells.some(item=>item.well===w.well&&item.volume!==null));return last===c.datasetIndex&&c.dataIndex%Math.max(1,Math.ceil(tank.daily.length/60))===0;},formatter:(_,c)=>tankNumber(tank.daily[c.dataIndex].total)},tooltip:{callbacks:{label:c=>{const well=tank.daily[c.dataIndex].wells.find(w=>w.well===tank.wells[c.datasetIndex].well);return c.dataset.label+': '+tankFlow(well.flow)+' L/h × '+well.hours.toLocaleString('pt-BR')+' h = '+tankNumber(c.parsed.y)+' L';},footer:items=>{const day=tank.daily[items[0].dataIndex];return 'Total estimado: '+tankNumber(day.total)+' L\nCobertura: '+day.measured+'/'+day.expected+' poços medidos'+(day.complete?'':' · TOTAL PARCIAL');}}}},scales:{x:{stacked:true,grid:{display:false},title:{display:true,text:'DIA DA MEDIÇÃO'},ticks:{maxRotation:45,autoSkip:true,maxTicksLimit:45}},y:{stacked:true,beginAtZero:true,grace:'22%',title:{display:true,text:'ENTRADA ESTIMADA (LITROS/DIA)'},ticks:{callback:value=>tankNumber(value)},grid:{color:'#edf2ef'}}}}}));
