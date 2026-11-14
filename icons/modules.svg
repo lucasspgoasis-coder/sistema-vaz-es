@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"/></symbol>
+<symbol id="water" viewBox="0 0 24 24"><path d="M12 3C10 7 5 11 5 15a7 7 0 0 0 14 0c0-4-5-8-7-12Z"/><path d="M8 15c3-2 5 2 8 0"/></symbol>
+<symbol id="sprout" viewBox="0 0 24 24"><path d="M12 22V11M12 14C5 15 2 11 2 5c6-1 10 2 10 9ZM12 10C12 4 16 2 22 3c0 6-4 9-10 7Z"/></symbol>
+<symbol id="blade" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 9V3h5l-2 7M15 12h6v5l-7-2M12 15v6H7l2-7M9 12H3V7l7 2"/></symbol>
+<symbol id="arrow" viewBox="0 0 24 24"><path d="M6 18 18 6M7 6h11v11"/></symbol>
+<symbol id="refresh" viewBox="0 0 24 24"><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></symbol>
+<symbol id="install" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
+</defs></svg>

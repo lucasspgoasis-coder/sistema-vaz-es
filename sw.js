@@ -1,15 +1,24 @@
-const CACHE='oasis-vazao-app-20261114-1';
-const CORE=['./','./index.html','./maintenance.js','./maintenance.css','./maintenance-history.js','./app-access.js','./app-access.css','./manifest.webmanifest','./icons/flow-192.png','./icons/flow-512.png','./icons/flow.svg'];
-const LIBRARIES=['https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js','https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0','https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'];
-self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(CORE);await Promise.allSettled(LIBRARIES.map(url=>cache.add(new Request(url,{mode:'no-cors'}))));})()));
+const CACHE='oasis-vazao-app-20261114-portal-1';
+const CORE=['./index.html','./portal.js','./portal.css','./manifest.webmanifest','./icons/gear.svg','./icons/gear-192.png','./icons/gear-512.png','./icons/modules.svg'];
+const SYSTEM_FILES=['./vazao.html','./planilhas.js','./maintenance.js','./maintenance.css','./maintenance-history.js','./sistema-adubacao/index.html','./sistema-adubacao/dashboard.js','./sistema-adubacao/dashboard.css','./sistema-rocadeira/index.html','./sistema-rocadeira/dashboard.js','./sistema-rocadeira/dashboard.css','./sistema-rocadeira/report.js'];
+const LIBRARIES=['https://cdn.tailwindcss.com','https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js','https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0','https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0','https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'];
+self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(CORE);await Promise.allSettled([...SYSTEM_FILES,...LIBRARIES].map(async url=>{const response=await fetch(new Request(new URL(url,self.registration.scope),{mode:LIBRARIES.includes(url)?'no-cors':'same-origin',signal:AbortSignal.timeout(15000)}));if(response.ok||response.type==='opaque')await cache.put(url,response);}));await self.skipWaiting();})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('oasis-vazao-app-')&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
+function portalCacheKey(url,scope){const key=new URL(url);key.search='';key.hash='';if(key.pathname.endsWith('/'))key.pathname+='index.html';return key.href;}
 self.addEventListener('fetch',event=>{
  if(event.request.method!=='GET')return;
  const url=new URL(event.request.url),scope=new URL(self.registration.scope);
  const local=url.origin===scope.origin&&url.pathname.startsWith(scope.pathname),library=LIBRARIES.includes(event.request.url);
  if(!local&&!library)return;
- event.respondWith((async()=>{const cache=await caches.open(CACHE);if(event.request.mode==='navigate'){try{const response=await fetch(event.request);if(response.ok)await cache.put('./index.html',response.clone());return response;}catch{return await cache.match('./index.html')||Response.error();}}
- if(local){try{const response=await fetch(event.request);if(response.ok)await cache.put(event.request,response.clone());return response;}catch{return await cache.match(event.request,{ignoreSearch:true})||Response.error();}}
- const cached=await cache.match(event.request);if(cached)return cached;
- try{const response=await fetch(event.request);if(response.ok||response.type==='opaque')await cache.put(event.request,response.clone());return response;}catch{return Response.error();}})());
+ event.respondWith((async()=>{
+  const cache=await caches.open(CACHE);
+  if(event.request.mode==='navigate'){
+   const key=portalCacheKey(event.request.url,scope);
+   try{const response=await fetch(event.request);if(response.ok)await cache.put(key,response.clone());return response;}
+   catch{const saved=await cache.match(key);return saved||new Response('<!doctype html><html lang="pt-BR"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sem conexão</title><body style="font:15px Arial;padding:32px;color:#294e37;background:#f5f7f2"><h2>Sistema indisponível sem conexão</h2><p>Conecte-se para abrir este sistema e consultar a planilha.</p><a href="'+scope.href+'" target="_top">Voltar ao painel de sistemas</a></body></html>',{headers:{'Content-Type':'text/html; charset=utf-8'}});}
+  }
+  if(local){try{const response=await fetch(event.request);if(response.ok)await cache.put(event.request,response.clone());return response;}catch{return await cache.match(event.request,{ignoreSearch:true})||Response.error();}}
+  const saved=await cache.match(event.request);if(saved)return saved;
+  try{const response=await fetch(event.request);if(response.ok||response.type==='opaque')await cache.put(event.request,response.clone());return response;}catch{return Response.error();}
+ })());
 });

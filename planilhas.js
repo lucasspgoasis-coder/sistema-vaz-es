@@ -1,0 +1,2 @@
+function cachePublishedFlowRows(){try{localStorage.setItem('oasis.sheetOnly.flow.v1',JSON.stringify(rawData.map(row=>({...row,dateObj:undefined}))));}catch{}}
+function restorePublishedFlowRows(){try{const cached=JSON.parse(localStorage.getItem('oasis.sheetOnly.flow.v1')||localStorage.getItem('oasis.sheet.flow.v1')||'[]');rawData=cached.filter(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.dateStr)&&Number.isFinite(row.vazao)).map(row=>({...row,dateObj:new Date(row.dateStr+'T00:00:00')}));return rawData.length;}catch{rawData=[];return 0;}}
