@@ -82,18 +82,18 @@ function renderMeterConnections(){
  target.append(svg);
 }
 async function loadMaintenanceData(){
- if(maintenanceLoading)return;maintenanceLoading=true;
+ if(maintenanceLoading)return;maintenanceLoading=true;let sourceUpdated=false;
  const statuses=document.querySelectorAll('.maintenance-status');statuses.forEach(el=>el.textContent='Atualizando planilha de manutenção…');
  try{
   const results=await Promise.all(['0','1383864696'].map(async gid=>{const response=await fetch(MAINTENANCE_SHEET+'/pub?output=csv&gid='+gid,{signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error('HTTP '+response.status);const text=await response.text();const result=Papa.parse(text,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim()});if(!result.data.length||!result.meta.fields.includes(gid==='0'?'POÇO':'Poços Parados'))throw Error('Formato inesperado');return result.data;}));
-  [maintenanceBase,maintenanceAnalysis]=results;maintenanceLoaded=true;statuses.forEach(el=>el.textContent='Dados atualizados da planilha · '+new Date().toLocaleString('pt-BR',{timeZone:'America/Fortaleza'}));
+  [maintenanceBase,maintenanceAnalysis]=results;maintenanceLoaded=true;sourceUpdated=true;statuses.forEach(el=>el.textContent='Dados atualizados da planilha · '+new Date().toLocaleString('pt-BR',{timeZone:'America/Fortaleza'}));
  }catch(error){
-  if(!maintenanceLoaded){maintenanceBase=MAINTENANCE_SNAPSHOT.base;maintenanceAnalysis=MAINTENANCE_SNAPSHOT.analysis;maintenanceLoaded=true;}
+  if(!maintenanceLoaded){maintenanceBase=MAINTENANCE_SNAPSHOT.base;maintenanceAnalysis=MAINTENANCE_SNAPSHOT.analysis;maintenanceLoaded=true;sourceUpdated=true;}
   statuses.forEach(el=>el.textContent='Não foi possível atualizar agora. Exibindo a última leitura disponível (importação inicial: 13/11/2026).');console.warn('Planilha de manutenção:',error);
- }finally{maintenanceLoading=false;maintenanceOptions();if(['maintenance','meters'].includes(activeDashboardTab))renderMaintenance();}
+ }finally{maintenanceLoading=false;if(sourceUpdated&&typeof captureMaintenanceSheet==='function')captureMaintenanceSheet();maintenanceOptions();if(['maintenance','meters'].includes(activeDashboardTab))renderMaintenance();}
 }
 function openMaintenanceTab(tab){
- activeDashboardTab=tab;for(const name of ['overview','daily','maintenance','meters']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
+ activeDashboardTab=tab;for(const name of ['overview','daily','maintenance','meters','registry']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
  document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);
  renderMaintenance();if(!maintenanceLoaded)loadMaintenanceData();
 }
