@@ -8,7 +8,7 @@ O endereço principal abre a central de operações, com acesso direto aos três
 | Adubação | `sistema-adubacao/index.html` | Planilha configurada no repositório de adubação |
 | Roçadeira | `sistema-rocadeira/index.html` | Planilha configurada no repositório de roçadeira |
 
-Os repositórios de adubação e roçadeira são os submódulos já existentes, sem alteração nos seus gráficos e regras. O GitHub Pages obtém esses arquivos pelas URLs declaradas em `.gitmodules`.
+Os repositórios de adubação e roçadeira são os submódulos já existentes. Seus gráficos e regras de cálculo foram preservados; a Roçadeira abre sem login e os dois sistemas usam logos e fontes de ícones locais. O GitHub Pages obtém esses arquivos pelas URLs declaradas em `.gitmodules`.
 
 Para lançar ou corrigir dados, edite a planilha correspondente e use **Atualizar sistema**. Cada sistema mantém sua própria leitura e análise da fonte publicada. A publicação do Google pode levar algum tempo para refletir uma edição.
 
