@@ -32,8 +32,7 @@ function renderMaintenance(){
  maintenanceCharts.forEach(chart=>chart.destroy());maintenanceCharts=[];
  const stops=activeDashboardTab==='meters'?maintenanceStops():maintenanceFilteredStops(),totals=maintenanceTotals(stops),base=maintenanceBase.filter(row=>!maintenanceFilter.well||maintenanceWell(row['POÇO'])===maintenanceFilter.well);
  maintenanceMetric('maintenanceRecords',base.length);maintenanceMetric('maintenanceStopped',new Set(stops.filter(s=>s.current).map(s=>s.well)).size);maintenanceMetric('maintenanceDays',totals.reduce((sum,item)=>sum+item.days,0));maintenanceMetric('maintenanceFinished',stops.filter(s=>s.status==='Concluída').length);
- const historyKeys=['POÇO','MANUTENÇÃO','NOVA MANUTENÇÃO',...Object.keys(maintenanceBase[0]||{}).filter(key=>!['POÇO','MANUTENÇÃO','NOVA MANUTENÇÃO'].includes(key))];
- maintenanceTable('maintenanceHistory',historyKeys.map(key=>({'MANUTENÇÃO':'Data de manutenção','NOVA MANUTENÇÃO':'Data da nova manutenção','POÇO':'Poço'}[key]||key)),base.map(row=>historyKeys.map(key=>row[key])));
+ renderMaintenanceHistory(base);
  maintenanceTable('maintenancePeriods',['Poço','Início da parada','Retorno','Situação','Dias parados'],stops.map(s=>[s.well,maintenanceDisplay(s.start),s.end?maintenanceDisplay(s.end):'Sem retorno informado',s.status,s.days]));
  renderMaintenanceCharts(stops,totals);
  for(const meter of ['R2','R3']){
