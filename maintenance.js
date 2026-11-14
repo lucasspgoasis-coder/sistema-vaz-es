@@ -94,7 +94,7 @@ async function loadMaintenanceData(){
  }finally{maintenanceLoading=false;maintenanceOptions();if(['maintenance','meters'].includes(activeDashboardTab))renderMaintenance();}
 }
 function openMaintenanceTab(tab){
- activeDashboardTab=tab;for(const name of ['overview','daily','maintenance','meters','tanks']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
+ activeDashboardTab=tab;for(const name of ['overview','daily','maintenance','meters']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
  document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);
  renderMaintenance();if(!maintenanceLoaded)loadMaintenanceData();
 }
