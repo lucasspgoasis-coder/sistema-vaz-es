@@ -6,7 +6,14 @@ function calculateMonthlyTrend(rows){
  const items=[...groups.values()].map(item=>({...item,average:item.total/item.count})).sort((a,b)=>a.well.localeCompare(b.well,'pt-BR',{numeric:true})||a.month.localeCompare(b.month)),previous=new Map();
  return items.map(item=>{const prior=previous.get(item.well);previous.set(item.well,item);const d=new Date(item.month+'-01T00:00:00Z');d.setUTCMonth(d.getUTCMonth()-1);const comparable=prior?.month===d.toISOString().slice(0,7),delta=comparable?item.average-prior.average:null;return {...item,delta,percent:comparable&&prior.average!==0?delta/prior.average*100:null,status:!comparable?'Sem mês anterior':Math.abs(delta)<0.000001?'Manteve':delta>0?'Aumentou':'Diminuiu'};});
 }
-let trendChart=null;
+function trendAnnotation(item){
+ const n=value=>value.toLocaleString('pt-BR',{maximumFractionDigits:1});
+ if(!item)return {color:'#647467',lines:[]};
+ const arrow=item.delta===null?'•':item.status==='Manteve'?'→':item.delta>0?'↑':'↓';
+ const signed=value=>(value>0?'+':'')+n(value);
+ return {color:item.status==='Aumentou'?'#08714f':item.status==='Diminuiu'?'#c03935':'#647467',lines:[item.well+' · '+n(item.average)+' L/h',arrow+' '+item.status,item.delta===null?'Sem comparação':signed(item.delta)+' L/h · '+(item.percent===null?'% indisponível':signed(item.percent)+'%')]};
+}
+let trendChart=null,trendCharts=[];
 function renderTrend(){
  const wellSelect=document.getElementById('trendWell'),yearSelect=document.getElementById('trendYear');
  const fill=(select,values)=>{const chosen=select.value;select.replaceChildren(new Option('Todos',''));for(const value of values)select.add(new Option(value,value));select.value=values.includes(chosen)?chosen:'';};
@@ -17,8 +24,15 @@ function renderTrend(){
  document.getElementById('trendEmpty').hidden=items.length>0;document.getElementById('trendCount').textContent=items.length+' médias mensais · '+wells.length+' poços';
  const body=document.getElementById('trendRows');body.replaceChildren();
  for(const item of items){const tr=document.createElement('tr');for(const value of [item.well,monthLabel(item.month),number(item.average)+' L/h',item.count,item.delta===null?'—':(item.delta>0?'+':'')+number(item.delta)+' L/h',item.percent===null?'—':(item.percent>0?'+':'')+number(item.percent)+'%',item.status]){const td=document.createElement('td');td.textContent=value;tr.append(td);}tr.lastChild.style.color=item.status==='Aumentou'?'#08714f':item.status==='Diminuiu'?'#b33c35':'#647467';body.append(tr);}
- if(trendChart)trendChart.destroy();
- trendChart=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:months.map(monthLabel),datasets:wells.map((well,index)=>({label:well,data:months.map(month=>items.find(r=>r.month===month&&r.well===well)?.average??null),borderColor:getWellColor(index),backgroundColor:getWellColor(index),tension:0.15,spanGaps:false,pointRadius:5}))},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{datalabels:{display:wells.length===1,align:'top',formatter:value=>value===null?'':number(value)},legend:{position:'bottom'}},scales:{y:{beginAtZero:true,title:{display:true,text:'Vazão média · L/h'}}}}});
+ for(const chart of trendCharts)chart.destroy();trendCharts=[];trendChart=null;
+ const plots=document.getElementById('trendCharts');plots.replaceChildren();
+ for(const [index,well] of wells.entries()){
+  const section=document.createElement('section');section.className='trend-well-card';const heading=document.createElement('h4');heading.textContent=well;section.append(heading);
+  const scroll=document.createElement('div');scroll.className='trend-scroll';const plot=document.createElement('div');plot.className='trend-well-plot';plot.style.minWidth=Math.max(560,months.length*230)+'px';const canvas=document.createElement('canvas');canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Tendência mensal de '+well+' com variação em litros por hora e percentual');plot.append(canvas);scroll.append(plot);section.append(scroll);plots.append(section);
+  const series=months.map(month=>items.find(r=>r.month===month&&r.well===well));
+  const chart=new Chart(canvas,{type:'line',data:{labels:months.map(monthLabel),datasets:[{label:well,data:series.map(item=>item?.average??null),borderColor:getWellColor(index),backgroundColor:getWellColor(index),pointBackgroundColor:series.map(item=>trendAnnotation(item).color),pointBorderColor:'#fff',pointBorderWidth:2,tension:0.15,spanGaps:false,pointRadius:6}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:95,left:110,right:110,bottom:8}},plugins:{datalabels:{display:context=>series[context.dataIndex]!=null,align:'top',anchor:'end',offset:10,clip:false,color:context=>trendAnnotation(series[context.dataIndex]).color,backgroundColor:'#ffffffed',borderRadius:7,padding:7,textAlign:'center',font:{size:11,weight:'bold'},formatter:(value,context)=>trendAnnotation(series[context.dataIndex]).lines},legend:{display:false},tooltip:{callbacks:{label:context=>trendAnnotation(series[context.dataIndex]).lines}}},scales:{y:{beginAtZero:true,grace:'20%',title:{display:true,text:'Vazão média · L/h'}},x:{grid:{display:false}}}}});trendCharts.push(chart);
+ }
+ trendChart=trendCharts[0]||null;
 }
 const baseSwitchDashboardTab=switchDashboardTab;
 switchDashboardTab=function(tab){document.getElementById('panel-trend').hidden=tab!=='trend';document.getElementById('tab-trend').setAttribute('aria-selected',String(tab==='trend'));if(tab!=='trend'){baseSwitchDashboardTab(tab);return;}activeDashboardTab='trend';for(const name of ['overview','daily','maintenance','meters']){document.getElementById('panel-'+name).hidden=true;document.getElementById('tab-'+name).setAttribute('aria-selected','false');}document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);renderTrend();};

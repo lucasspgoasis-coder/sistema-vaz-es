@@ -18,3 +18,15 @@ test('Nova aba mantém os filtros e usa os dados filtrados, sem tabela de regist
  const html=await read('sistema-rocadeira/index.html'),app=await read('sistema-rocadeira/assets/js/app.js');assert.ok(html.includes('tabBtn-rendimento'));assert.equal(html.includes('tabBtn-tabela'),false);assert.equal(html.includes('tabContent-tabela'),false);assert.ok(app.includes('renderRendimento(validData)'));assert.ok(app.includes("'rocadeiras', 'rendimento'"));
  const flow=await read('vazao.html');assert.ok(flow.includes('id="tab-trend"'));assert.ok(flow.includes('id="panel-trend"'));assert.ok(flow.includes('tendencia.js?v=20261116'));
 });
+test('Rótulos mostram nome, setas, sinais, diferença e percentual sem depender do mouse',async()=>{
+ const context=vm.createContext({switchDashboardTab(){},applyFilters(){}});vm.runInContext(await read('tendencia.js'),context);
+ const up=context.trendAnnotation({well:'Poço 03',average:120,delta:20,percent:20,status:'Aumentou'});assert.equal(up.color,'#08714f');assert.ok(up.lines[0].includes('Poço 03'));assert.ok(up.lines[1].includes('↑'));assert.equal(up.lines[2],'+20 L/h · +20%');
+ const down=context.trendAnnotation({well:'Poço 03',average:80,delta:-20,percent:-20,status:'Diminuiu'});assert.equal(down.color,'#c03935');assert.ok(down.lines[1].includes('↓'));assert.equal(down.lines[2],'-20 L/h · -20%');
+ const stable=context.trendAnnotation({well:'P',average:100,delta:0,percent:0,status:'Manteve'});assert.ok(stable.lines[1].includes('→'));assert.equal(stable.lines[2],'0 L/h · 0%');
+ const absent=context.trendAnnotation({well:'P',average:100,delta:null,percent:null,status:'Sem mês anterior'});assert.equal(absent.lines[2],'Sem comparação');
+});
+test('Rendimento exibe percentuais nas barras e nomes da planilha escapados',async()=>{
+ const nodes=new Map(['yieldSummary','yieldBlocks','yieldPeople'].map(id=>[id,{innerHTML:''}]));const context=vm.createContext({document:{getElementById:id=>nodes.get(id)}});vm.runInContext(await read('sistema-rocadeira/assets/js/rendimento.js'),context);
+ context.renderRendimento([{Local:'Bloco <A>',Equipamento:'R1',Operador:'Ana <teste>',DurationMinutes:60},{Local:'Bloco <A>',Equipamento:'R2',Operador:'Bia',DurationMinutes:180}]);
+ assert.ok(nodes.get('yieldBlocks').innerHTML.includes('>25%</span>'));assert.ok(nodes.get('yieldBlocks').innerHTML.includes('>75%</span>'));assert.ok(nodes.get('yieldBlocks').innerHTML.includes('Bloco &lt;A&gt;'));assert.ok(nodes.get('yieldPeople').innerHTML.includes('Ana &lt;teste&gt;'));assert.ok(nodes.get('yieldPeople').innerHTML.includes('yield-rank'));context.renderRendimento([]);assert.ok(nodes.get('yieldPeople').innerHTML.includes('Nenhum colaborador'));
+});
