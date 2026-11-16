@@ -16,7 +16,7 @@ test('Tela inicial possui três sistemas, sem perfis, senha ou cadastros',async(
  assert.equal(ids.length,new Set(ids).size);assert.equal((html.match(/data-system-card=/g)||[]).length,3);
  assert.equal(/accessScreen|managerPassword|panel-registry|app-access|OASIS_API/.test(html),false);
  for(const path of ['vazao.html','sistema-adubacao/index.html','sistema-rocadeira/index.html'])await access(new URL('../'+path,import.meta.url));
- const flow=await readFile(new URL('../vazao.html',import.meta.url),'utf8');assert.equal((flow.match(/role="tab"/g)||[]).length,4);assert.equal(/app-access|managerPassword|panel-registry/.test(flow),false);assert.ok(flow.includes('docs.google.com/spreadsheets'));
+ const flow=await readFile(new URL('../vazao.html',import.meta.url),'utf8');assert.equal((flow.match(/role="tab"/g)||[]).length,5);assert.equal(/app-access|managerPassword|panel-registry/.test(flow),false);assert.ok(flow.includes('docs.google.com/spreadsheets'));
  new vm.Script(flow.match(/<script>([\s\S]*?)<\/script>/)[1]);
 });
 test('Alterna os três módulos, preserva seus quadros e permite atualizar',()=>{
