@@ -11,15 +11,15 @@ var PhotoDocReport=(()=>{
   function text(value,size=19,bold=false,color='#254354'){ctx.font=(bold?'bold ':'')+size+'px Arial';const wrapped=lines(ctx,value,W-M*2);for(const line of wrapped){ensure(size+12);ctx.font=(bold?'bold ':'')+size+'px Arial';ctx.fillStyle=color;ctx.fillText(line,M,y);y+=size+10;}}
   function metadata(entry){text(entry.block+' · '+date(entry.date),27,true);text('Causa / ocorrência informada: '+entry.cause,22,true);if(entry.culture||entry.author)text([entry.culture&&'Cultura: '+entry.culture,entry.author&&'Responsável: '+entry.author].filter(Boolean).join(' · '),17);y+=8;}
   for(const entry of entries){activeEntry=entry;const photos=PhotoDocCore.sortPhotos(PhotoDocCore.activePhotos(entry));for(let index=0;index<photos.length;index++){
-   const photo=photos[index];page();metadata(entry);text('Foto '+(index+1)+' de '+photos.length+' · '+photo.name,18,true,'#5969a4');
+   const photo=photos[index];page();metadata(entry);text('Foto '+(index+1)+' de '+photos.length+' · Registro: '+PhotoDocCore.photoDate(entry),18,true,'#5969a4');
    if(index===0&&entry.notes){text('Observações do registro: '+entry.notes,17);y+=12;}
    const frameWidth=W-M*2,frameHeight=frameWidth*3/4;
-   if(y+frameHeight+40>H-90){page();metadata(entry);text('Foto '+(index+1)+' de '+photos.length+' · '+photo.name,18,true,'#5969a4');}
+   if(y+frameHeight+40>H-90){page();metadata(entry);text('Foto '+(index+1)+' de '+photos.length+' · Registro: '+PhotoDocCore.photoDate(entry),18,true,'#5969a4');}
    let bitmap;try{bitmap=await image(photo.preview||photo.original);}catch{throw Error('A foto '+photo.name+' não pôde ser desenhada. O arquivo original continua salvo no histórico.');}
    const scale=Math.min((frameWidth-20)/bitmap.width,(frameHeight-20)/bitmap.height),width=bitmap.width*scale,height=bitmap.height*scale;ctx.fillStyle='#f1f5f8';ctx.fillRect(M,y,frameWidth,frameHeight);ctx.drawImage(bitmap,M+(frameWidth-width)/2,y+(frameHeight-height)/2,width,height);y+=frameHeight+30;bitmap.close?.();
    const caption=PhotoDocCore.caption(entry,photo);text(caption.context,17);y+=8;text(caption.automatic,18,false,'#5969a4');
    if(photo.description&&photo.descriptionSource==='manual'){y+=8;text('Descrição do responsável: '+photo.description,18);}
-   text(caption.review,16,true,photo.reviewed?'#23734f':'#986a32');y+=8;text('Arquivo original: '+(photo.originalName||photo.name)+' · '+(photo.original.size/1024/1024).toLocaleString('pt-BR',{maximumFractionDigits:2})+' MB',14,false,'#6c8390');
+   text(caption.review,16,true,photo.reviewed?'#23734f':'#986a32');y+=8;text('Registro: '+PhotoDocCore.photoDate(entry)+' · Original preservado · '+(photo.original.size/1024/1024).toLocaleString('pt-BR',{maximumFractionDigits:2})+' MB',14,false,'#6c8390');
    if(photo.hash)text('SHA-256 do original: '+photo.hash,13,false,'#6c8390');
   }}
   pages.forEach((c,i)=>{const p=c.getContext('2d');p.fillStyle='#fff';p.fillRect(0,H-70,W,70);p.fillStyle='#6c8390';p.font='15px Arial';p.fillText('Fotos originais preservadas no aparelho · Sugestões visuais não confirmam a causa.',M,H-43);p.textAlign='right';p.fillText((i+1)+' / '+pages.length,W-M,H-20);});
