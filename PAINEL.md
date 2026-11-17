@@ -91,3 +91,7 @@ A aba de mudas agora tem somente o filtro Ciclo. Mostra todos os blocos, datas e
 
 ### Mudas por ciclo e bloco
 O filtro Bloco apresenta os blocos disponíveis no ciclo, com opção Todos os blocos. Se o bloco anterior não existir no novo ciclo, volta para Todos. Tela e PNG usam os mesmos filtros, preservando todas as datas do bloco. Campos gerais têm largura mínima maior, valores em linha própria e cartões responsivos.
+
+
+### PNG de mudas · visual ampliado
+Relatório redesenhado em páginas de 1600 × 2264 px, com margem de 88 px, cabeçalho em degradê, números centralizados, fontes ampliadas, ícones e maior separação entre datas e blocos. Linhas permanecem inteiras nas quebras de página. O arquivo preserva todos os dados dos filtros e reúne as páginas em PNG vertical.
