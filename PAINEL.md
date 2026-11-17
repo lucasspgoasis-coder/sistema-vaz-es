@@ -95,3 +95,7 @@ O filtro Bloco apresenta os blocos disponíveis no ciclo, com opção Todos os b
 
 ### PNG de mudas · visual ampliado
 Relatório redesenhado em páginas de 1600 × 2264 px, com margem de 88 px, cabeçalho em degradê, números centralizados, fontes ampliadas, ícones e maior separação entre datas e blocos. Linhas permanecem inteiras nas quebras de página. O arquivo preserva todos os dados dos filtros e reúne as páginas em PNG vertical.
+
+
+### Vazão · Cadastro de aferições
+A sexta aba calcula 15 litros ÷ segundos × 3600 e envia Data, Poço, Hora e Vazão numérica ao Apps Script informado pelo proprietário. A função doPost existente foi fornecida e o endpoint foi verificado apenas em leitura (online e CORS), sem inserir dados fictícios. Histórico e rascunho locais, confirmação explícita, bloqueio de repetição e conferência por CSV publicado. integracao-vazao.gs é a versão preparada para atualização manual da implantação, preservando a aba, formatos e colunas derivadas. Veja INTEGRACAO-VAZAO.md.
