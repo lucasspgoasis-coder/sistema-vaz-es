@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/portal.test.mjs tests/fluid-layout.test.mjs tests/chart-motion.test.mjs tests/trend-usage.test.mjs tests/module-access-icons.test.mjs tests/maintenance-history.test.mjs tests/loss-history.test.mjs tests/new-modules.test.mjs tests/module-dom.test.mjs"
+    "test": "node --test tests/portal.test.mjs tests/fluid-layout.test.mjs tests/chart-motion.test.mjs tests/trend-usage.test.mjs tests/module-access-icons.test.mjs tests/maintenance-history.test.mjs tests/loss-history.test.mjs tests/new-modules.test.mjs tests/module-dom.test.mjs tests/documentary.test.mjs tests/documentary-dom.test.mjs"
   },
   "devDependencies": {
+    "@huggingface/transformers": "3.7.2",
     "@napi-rs/canvas": "0.1.80",
     "fake-indexeddb": "6.0.0",
     "jsdom": "26.1.0",

@@ -5,8 +5,8 @@ import vm from 'node:vm';
 import {JSDOM} from 'jsdom';
 import {IDBFactory} from 'fake-indexeddb';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
-test('Central exibe os cinco cartões na grade e navegação com nomes únicos',async()=>{
- const dom=new JSDOM(await read('index.html'));const doc=dom.window.document;assert.equal(doc.querySelectorAll('.system-cards>.system-card').length,5);assert.equal(doc.querySelectorAll('[data-nav]').length,6);const ids=[...doc.querySelectorAll('[id]')].map(n=>n.id);assert.equal(ids.length,new Set(ids).size);assert.ok(doc.querySelector('[data-system-card="transplantio"]'));assert.ok(doc.querySelector('[data-system-card="perdas"]'));dom.window.close();
+test('Central exibe os seis cartões na grade e navegação com nomes únicos',async()=>{
+ const dom=new JSDOM(await read('index.html'));const doc=dom.window.document;assert.equal(doc.querySelectorAll('.system-cards>.system-card').length,6);assert.equal(doc.querySelectorAll('[data-nav]').length,7);const ids=[...doc.querySelectorAll('[id]')].map(n=>n.id);assert.equal(ids.length,new Set(ids).size);assert.ok(doc.querySelector('[data-system-card="transplantio"]'));assert.ok(doc.querySelector('[data-system-card="perdas"]'));dom.window.close();
 });
 function chartStub(){return class Chart{static defaults={font:{}};static register(){}constructor(canvas,config){this.canvas=canvas?.canvas||canvas;this.data=config.data;this.options=config.options;this.config=config;}destroy(){}resize(){}update(){}stop(){}reset(){}};}
 async function load(folder,{factory=new IDBFactory(),parse=()=>{}}={}){

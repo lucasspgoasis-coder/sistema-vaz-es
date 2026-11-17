@@ -1,6 +1,6 @@
 # Central de operações · Fazenda Oásis
 
-A página inicial dá acesso direto a cinco sistemas, sem tela de login.
+A página inicial dá acesso direto a seis sistemas, sem tela de login.
 
 | Sistema | Página | Dados |
 | --- | --- | --- |
@@ -9,6 +9,7 @@ A página inicial dá acesso direto a cinco sistemas, sem tela de login.
 | Roçadeira | sistema-rocadeira/index.html | Planilha de uso dos equipamentos |
 | Transplantio | sistema-transplantio/index.html | Planilhas de mudas/transplantio e produção |
 | Contagem de Perdas | sistema-perdas/index.html | Formulário e histórico salvos neste aparelho |
+| Documentário de Perdas | documentario/index.html | Fotos, descrições, histórico alfabético e relatórios locais |
 
 Os quatro diretórios de sistemas são submódulos declarados em .gitmodules. Publique primeiro os commits dos submódulos e depois atualize as referências no painel.
 
@@ -36,4 +37,18 @@ history-core.js cuida das validações, cálculos e transações; history-report
 
 Os módulos têm layout e ícones locais. As peças dos ícones são animadas, e os gráficos se apresentam ao entrar na tela. A preferência por movimento reduzido é respeitada; exportações permanecem estáticas. O portal ajusta a altura dos quadros ao conteúdo, mantendo a rolagem normal da página.
 
-Com Node.js 22 ou superior, execute npm ci e npm test. As dependências de desenvolvimento verificam reabertura do armazenamento, edições concorrentes, os formulários com HTML real, navegação dos cinco módulos e geração real de JPEG/PDF. Dados fictícios existem somente nos testes e não são fontes do aplicativo.
+Com Node.js 22 ou superior, execute npm ci --ignore-scripts e npm test. As dependências de desenvolvimento verificam reabertura do armazenamento, edições concorrentes, os formulários com HTML real, navegação dos cinco módulos e geração real de JPEG/PDF. Dados fictícios existem somente nos testes e não são fontes do aplicativo.
+
+## Documentário fotográfico de perdas
+
+O sexto módulo associa várias fotos a um bloco, causa informada e data. Os registros são ordenados por bloco e causa com ordenação portuguesa A–Z e números naturais; datas são cronológicas e nomes de fotos são A–Z. O IndexedDB oasis-documentario-perdas-v1 mantém registros e rascunhos, fotos originais, prévias e descrições. Fotos excluídas do relatório permanecem preservadas e podem ser reincluídas. O SHA-256 é calculado sobre os bytes originais para conferir o arquivo salvo; isso não equivale a uma certificação da ocorrência.
+
+Os relatórios PDF/JPEG são gerados dos registros completos salvos e respeitam os filtros do histórico. Cada foto inclui bloco, data, ocorrência informada, descrição, estado da revisão e identificação do original. Rascunhos incompletos não entram nos relatórios. As descrições manuais e sua revisão não são substituídas por resultados atrasados da análise automática.
+
+### Sugestões visuais no aparelho
+
+A análise opcional usa o modelo geral Xenova/clip-vit-base-patch32 quantizado com Transformers.js 3.7.2, executado por WebAssembly em um Web Worker. O primeiro uso baixa aproximadamente 150 MB de pesos, além do runtime. Os pesos ficam no cache do modelo; não são incluídos no repositório nem pré-baixados pelo service worker. As fotos não são enviadas para um serviço de análise: o worker recebe a prévia como Blob e executa a inferência localmente.
+
+O modelo compara aspectos visuais pré-definidos. Não é um modelo agronômico validado para confirmar a causa de perdas. Resultados ambíguos ou imagens sem evidência agrícola recebem texto inconclusivo. A causa continua identificada como informada pelo responsável e a descrição de IA como sugestão a revisar. Se o aparelho ou a conexão não permitirem a análise, o cadastro e a descrição manual continuam disponíveis. A inferência real do backend WASM foi conferida com a imagem pública de demonstração do modelo, separadamente dos testes sem rede.
+
+Referências de implementação: [modelo e uso](https://huggingface.co/Xenova/clip-vit-base-patch32), [aplicação no navegador](https://huggingface.co/docs/transformers.js/tutorials/vanilla-js), [RawImage.fromBlob](https://huggingface.co/docs/transformers.js/api/utils/image).
