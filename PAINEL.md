@@ -66,3 +66,7 @@ O campo Causa foi removido do cadastro. Bloco, data e uma foto bastam para docum
 
 ### Enviar bloco ao histórico
 Após anexar fotos, Adicionar ao histórico conclui o registro, confirma a gravação e limpa o formulário para o próximo bloco. O histórico exibe todas as fotos com seu detalhamento visual. O salvamento automático continua protegendo o registro em edição.
+
+
+### Causa por foto
+Cada imagem possui uma lista ilustrada com 16 causas informadas pelo responsável. A seleção é opcional, independente da sugestão de IA e preservada com a foto no histórico e nos relatórios. Ícones SVG animam suas partes e respeitam a preferência por movimento reduzido.
