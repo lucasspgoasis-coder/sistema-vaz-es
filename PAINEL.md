@@ -99,3 +99,7 @@ Relatório redesenhado em páginas de 1600 × 2264 px, com margem de 88 px, cabe
 
 ### Vazão · Cadastro de aferições
 A sexta aba calcula 15 litros ÷ segundos × 3600 e envia Data, Poço, Hora e Vazão numérica ao Apps Script informado pelo proprietário. A função doPost existente foi fornecida e o endpoint foi verificado apenas em leitura (online e CORS), sem inserir dados fictícios. Histórico e rascunho locais, confirmação explícita, bloqueio de repetição e conferência por CSV publicado. integracao-vazao.gs é a versão preparada para atualização manual da implantação, preservando a aba, formatos e colunas derivadas. Veja INTEGRACAO-VAZAO.md.
+
+
+### Correção da gravação de vazão · integração v2
+O endpoint em uso ainda respondeu com o script antigo durante o diagnóstico. A nova integração verifica destino, versão e existência da coleta diretamente na aba, informa linha gravada, permite URL de nova implantação e retoma registros antigos sem confirmação. Código e instruções estão em integracao-vazao.gs e INTEGRACAO-VAZAO.md. A implantação do Apps Script precisa ser atualizada pelo proprietário; a sessão de controle do computador não estava disponível para editar o Google.
