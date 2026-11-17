@@ -35,7 +35,7 @@ test('Busca encontra nomes com ou sem acentos e abre o único resultado',()=>{
  get('systemSearch').value='';vm.runInContext('filterPortalSystems()',context);assert.equal(cards.filter(card=>!card.hidden).length,6);
 });
 test('Instalação possui nome novo e ícones de engrenagem nas dimensões corretas',async()=>{
- const manifest=JSON.parse(await readFile(new URL('../manifest.webmanifest',import.meta.url),'utf8'));assert.equal(manifest.name,'Dados de vazão, adubação e roçadeira');assert.equal(manifest.id,'./');assert.equal(manifest.display,'standalone');
+ const manifest=JSON.parse(await readFile(new URL('../manifest.webmanifest',import.meta.url),'utf8'));assert.equal(manifest.name,'Sistema integrado');assert.equal(manifest.id,'./');assert.equal(manifest.display,'standalone');
  for(const icon of manifest.icons){assert.ok(icon.src.includes('gear'));const bytes=await readFile(new URL('../'+icon.src,import.meta.url));const size=Number(icon.sizes.split('x')[0]);assert.equal(bytes.readUInt32BE(16),size);assert.equal(bytes.readUInt32BE(20),size);}
 });
 test('Consulta offline usa apenas medições reais da planilha',async()=>{

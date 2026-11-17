@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Dados de vazão, adubação e roçadeira",
-  "short_name": "Dados da fazenda",
-  "description": "Central de consulta de vazão, adubação e roçadeira da Fazenda Oasis, com dados das planilhas.",
+  "name": "Sistema integrado",
+  "short_name": "Sistema integrado",
+  "description": "Sistema integrado da Fazenda Oasis: vazão, adubação, roçadeira, transplantio e perdas.",
   "lang": "pt-BR",
   "start_url": "./?app=1",
   "scope": "./",

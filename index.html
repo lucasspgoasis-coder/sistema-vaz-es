@@ -4,21 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#173d2c">
-  <meta name="description" content="Painel de dados de vazão, adubação e roçadeira da Fazenda Oasis. Consulta direta aos sistemas e às planilhas.">
+  <meta name="description" content="Sistema integrado da Fazenda Oasis. Consulte os sistemas, as planilhas e os registros da operação.">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Dados de vazão, adubação e roçadeira</title>
+  <title>Sistema integrado</title>
+  <meta name="application-name" content="Sistema integrado">
+  <meta name="apple-mobile-web-app-title" content="Sistema integrado">
   <link rel="icon" type="image/svg+xml" href="icons/gear.svg?v=2">
   <link rel="apple-touch-icon" href="icons/gear-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="portal.css?v=20261117-block-20">
+  <link rel="stylesheet" href="portal.css?v=20261117-name-21">
 </head>
 <body>
   <aside class="portal-sidebar">
-    <a class="portal-brand" href="#inicio" aria-label="Início · Dados de vazão, adubação e roçadeira">
+    <a class="portal-brand" href="#inicio" aria-label="Início · Sistema integrado">
       <img src="icons/gear.svg?v=2" alt="" width="48" height="48">
-      <span><strong>Dados de vazão,<br>adubação e roçadeira</strong><small>Fazenda Oasis</small></span>
+      <span><strong>Sistema integrado</strong><small>Fazenda Oasis</small></span>
     </a>
     <nav class="portal-nav" aria-label="Navegação dos sistemas">
       <a href="#inicio" data-nav="inicio" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true" data-motion-icon="home"><path d="m3 10 9-7 9 7M5 9v12h14V9"/><path class="motion-home-door" d="M10 21v-7h4v7"/></svg><span>Início</span></a>
@@ -42,14 +44,14 @@
 <p id="systemSearchEmpty" class="portal-empty" hidden>Nenhum sistema encontrado. Busque por vazão, adubação, roçadeira, transplantio, perdas ou documentário.</p>
       <section class="portal-sheet-note"><div class="sheet-note-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5"/></svg></div><div><h3>Planilhas e registros em uma só central</h3><p>Vazão, adubação, roçadeira e transplantio consultam suas planilhas. Na Contagem de Perdas e no Documentário, preencha os registros no app: os dados, fotos e relatórios ficam neste navegador e aparelho. Use Atualizar sistema para reler as planilhas.</p></div></section>
       <div id="lastSystemBox" class="last-system" hidden><span>CONTINUAR DE ONDE PAROU</span><a id="lastSystemLink" href="#inicio"><strong id="lastSystemName"></strong><span>Abrir novamente →</span></a></div>
-      <footer class="portal-footer">Dados de vazão, adubação e roçadeira · Fazenda Oasis</footer>
+      <footer class="portal-footer">Sistema integrado · Fazenda Oasis</footer>
     </section>
     <section id="portalWorkspace" class="portal-workspace" hidden aria-label="Sistema selecionado">
       <div class="workspace-toolbar"><div><a href="#inicio" class="workspace-back">← Todos os sistemas</a><h2 id="workspaceTitle">Sistema</h2></div><div class="workspace-actions"><a id="openSystemLink" href="vazao.html" target="_blank" rel="noopener">Abrir em nova guia ↗</a><button type="button" onclick="refreshPortalSystem()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5"/></svg>Atualizar sistema</button></div></div>
       <div class="workspace-stage"><div id="workspaceLoading" class="workspace-loading" role="status"><span class="portal-spinner"></span><strong id="workspaceLoadingText">Abrindo sistema…</strong><span>Carregando o painel e suas informações.</span></div><div id="systemFrames" class="system-frames"></div></div>
     </section>
   </main>
-  <dialog id="portalInstallDialog" class="portal-install"><img src="icons/gear.svg?v=2" width="70" height="70" alt="Engrenagem do aplicativo"><h2>Instalar o aplicativo?</h2><p><strong>Dados de vazão, adubação e roçadeira</strong></p><p>Deixe os três sistemas juntos na tela inicial do seu celular ou computador.</p><p id="portalInstallHelp">As informações são atualizadas pelas planilhas quando houver conexão.</p><div><button type="button" onclick="installPortalApp()">Instalar app</button><button type="button" onclick="dismissPortalInstall()">Agora não</button></div></dialog>
-  <script src="portal.js?v=20261117-block-20"></script>
+  <dialog id="portalInstallDialog" class="portal-install"><img src="icons/gear.svg?v=2" width="70" height="70" alt="Engrenagem do aplicativo"><h2>Instalar o aplicativo?</h2><p><strong>Sistema integrado</strong></p><p>Deixe os sistemas juntos na tela inicial do seu celular ou computador.</p><p id="portalInstallHelp">As informações são atualizadas pelas planilhas quando houver conexão.</p><div><button type="button" onclick="installPortalApp()">Instalar app</button><button type="button" onclick="dismissPortalInstall()">Agora não</button></div></dialog>
+  <script src="portal.js?v=20261117-name-21"></script>
 </body>
 </html>
