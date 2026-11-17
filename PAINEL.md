@@ -58,3 +58,7 @@ Referências de implementação: [modelo e uso](https://huggingface.co/Xenova/cl
 Os botões Editar foto e Excluir foto aparecem na galeria e nas miniaturas do histórico. O editor permite alterar o nome de exibição, corrigir a descrição e substituir a imagem. A substituição preserva a foto anterior em photoArchive e invalida a análise vinculada aos bytes da imagem anterior. Os downloads de originais mantêm o nome do arquivo original.
 
 A exclusão retira a foto da lista ativa e dos relatórios, mas permite restauração em Fotos excluídas e versões anteriores. Excluir a última foto deixa o levantamento como rascunho, sem apagar seus arquivos. Fotos restauradas continuam em ordem alfabética. Galeria, miniaturas e áreas de foto no JPEG/PDF usam quadros 4:3; as imagens são centralizadas e contidas sem corte ou deformação.
+
+
+### Cadastro rápido no Documentário
+O campo Causa foi removido do cadastro. Bloco, data e uma foto bastam para documentar. O detalhamento visual é preenchido abaixo de cada imagem, salvo no histórico e incluído nos relatórios. Causas de registros antigos permanecem preservadas.
