@@ -87,3 +87,7 @@ Os campos do histórico fotográfico compartilham linhas por subgrid, preservand
 
 ### Mudas por ciclo
 A aba de mudas agora tem somente o filtro Ciclo. Mostra todos os blocos, datas e variedades desse ciclo, somando lançamentos do mesmo bloco/data/variedade. Datas diferentes permanecem discriminadas; registros sem data são identificados. O PNG inclui todas as datas e totais por dia e bloco. O ciclo mais recente é selecionado inicialmente.
+
+
+### Mudas por ciclo e bloco
+O filtro Bloco apresenta os blocos disponíveis no ciclo, com opção Todos os blocos. Se o bloco anterior não existir no novo ciclo, volta para Todos. Tela e PNG usam os mesmos filtros, preservando todas as datas do bloco. Campos gerais têm largura mínima maior, valores em linha própria e cartões responsivos.
