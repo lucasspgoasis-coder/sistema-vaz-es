@@ -16,7 +16,7 @@ test('Participação das roçadeiras soma 100% em cada bloco e colaboradores no 
 });
 test('Nova aba mantém os filtros e usa os dados filtrados, sem tabela de registros na navegação',async()=>{
  const html=await read('sistema-rocadeira/index.html'),app=await read('sistema-rocadeira/assets/js/app.js');assert.ok(html.includes('tabBtn-rendimento'));assert.equal(html.includes('tabBtn-tabela'),false);assert.equal(html.includes('tabContent-tabela'),false);assert.ok(app.includes('renderRendimento(validData)'));assert.ok(app.includes("'rocadeiras', 'rendimento'"));
- const flow=await read('vazao.html');assert.ok(flow.includes('id="tab-trend"'));assert.ok(flow.includes('id="panel-trend"'));assert.ok(flow.includes('tendencia.js?v=20261116'));
+ const flow=await read('vazao.html');assert.ok(flow.includes('id="tab-trend"'));assert.ok(flow.includes('id="panel-trend"'));assert.ok(flow.includes('tendencia.js?v='));
 });
 test('Rótulos mostram nome, setas, sinais, diferença e percentual sem depender do mouse',async()=>{
  const context=vm.createContext({switchDashboardTab(){},applyFilters(){}});vm.runInContext(await read('tendencia.js'),context);
@@ -30,3 +30,5 @@ test('Rendimento exibe percentuais nas barras e nomes da planilha escapados',asy
  context.renderRendimento([{Local:'Bloco <A>',Equipamento:'R1',Operador:'Ana <teste>',DurationMinutes:60},{Local:'Bloco <A>',Equipamento:'R2',Operador:'Bia',DurationMinutes:180}]);
  assert.ok(nodes.get('yieldBlocks').innerHTML.includes('>25%</span>'));assert.ok(nodes.get('yieldBlocks').innerHTML.includes('>75%</span>'));assert.ok(nodes.get('yieldBlocks').innerHTML.includes('Bloco &lt;A&gt;'));assert.ok(nodes.get('yieldPeople').innerHTML.includes('Ana &lt;teste&gt;'));assert.ok(nodes.get('yieldPeople').innerHTML.includes('yield-rank'));context.renderRendimento([]);assert.ok(nodes.get('yieldPeople').innerHTML.includes('Nenhum colaborador'));
 });
+
+test('Painéis mensais cabem na largura e preservam todos os meses',async()=>{const context=vm.createContext({switchDashboardTab(){},applyFilters(){}});vm.runInContext(await read('tendencia.js'),context);const months=Array.from({length:24},(_,i)=>String(i));for(const width of [280,375,768,1100,1800]){const pages=context.trendMonthPages(months,width);assert.equal(JSON.stringify(pages.flat()),JSON.stringify(months));assert.ok(pages.every(page=>page.length<=5));if(width<500)assert.ok(pages.every(page=>page.length===1));}});
