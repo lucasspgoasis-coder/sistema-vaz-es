@@ -17,7 +17,7 @@ var PhotoDocReport=(()=>{
    if(y+frameHeight+40>H-90){page();metadata(entry);text('Foto '+(index+1)+' de '+photos.length+' · Registro: '+PhotoDocCore.photoDate(entry),18,true,'#5969a4');}
    let bitmap;try{bitmap=await image(photo.preview||photo.original);}catch{throw Error('A foto '+photo.name+' não pôde ser desenhada. O arquivo original continua salvo no histórico.');}
    const scale=Math.min((frameWidth-20)/bitmap.width,(frameHeight-20)/bitmap.height),width=bitmap.width*scale,height=bitmap.height*scale;ctx.fillStyle='#f1f5f8';ctx.fillRect(M,y,frameWidth,frameHeight);ctx.drawImage(bitmap,M+(frameWidth-width)/2,y+(frameHeight-height)/2,width,height);y+=frameHeight+30;bitmap.close?.();
-   const caption=PhotoDocCore.caption(entry,photo);text(caption.context,17);if(caption.automatic){y+=8;text(caption.automatic,18,false,'#5969a4');}
+   const caption=PhotoDocCore.caption(entry,photo);text(caption.context,17);if(caption.justification){y+=8;text('Justificativa da perda: '+caption.justification,18,false,'#34745b');}if(caption.automatic){y+=8;text(caption.automatic,18,false,'#5969a4');}
    if(photo.description&&photo.descriptionSource==='manual'){y+=8;text('Detalhamento visual: '+photo.description,18);}
    text(caption.review,16,true,photo.reviewed?'#23734f':'#986a32');y+=8;text('Registro: '+PhotoDocCore.photoDate(entry)+' · Original preservado · '+(photo.original.size/1024/1024).toLocaleString('pt-BR',{maximumFractionDigits:2})+' MB',14,false,'#6c8390');
    if(photo.hash)text('SHA-256 do original: '+photo.hash,13,false,'#6c8390');
