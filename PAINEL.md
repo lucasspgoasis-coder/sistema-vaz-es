@@ -83,3 +83,7 @@ A aba soma as colunas Bandejas e Mudas da planilha por dia, bloco e variedade, i
 
 ### Alinhamento das fotos e exportação diária em PNG
 Os campos do histórico fotográfico compartilham linhas por subgrid, preservando o texto completo; os botões mantêm o alinhamento dos cartões. Mudas por dia permite baixar uma imagem PNG com os filtros atuais, totais gerais, bloco, data, variedades, bandejas e mudas. O relatório tem margens A4, ícones desenhados e cabeçalho por página. Se houver várias páginas, são reunidas em um único PNG vertical. O relatório usa desenho local, sem depender de bibliotecas ou fontes externas.
+
+
+### Mudas por ciclo
+A aba de mudas agora tem somente o filtro Ciclo. Mostra todos os blocos, datas e variedades desse ciclo, somando lançamentos do mesmo bloco/data/variedade. Datas diferentes permanecem discriminadas; registros sem data são identificados. O PNG inclui todas as datas e totais por dia e bloco. O ciclo mais recente é selecionado inicialmente.
