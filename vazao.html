@@ -29,7 +29,7 @@ main>section.card{padding:25px 28px;border-top:3px solid #33835d;box-shadow:0 4p
 @media(max-width:640px){.dashboard-tabs{gap:2px}.dashboard-tab{flex:1;padding:11px 8px;font-size:12px}.ranking-card{padding:18px 12px}}
 
 .trend-well-card{margin:22px 0;border:1px solid #dce7df;border-radius:14px;padding:18px 8px;background:#fff}.trend-well-card h4{font-size:16px;margin:0 12px 10px;color:#183e30}.trend-scroll{overflow-x:auto}.trend-well-plot{height:390px;position:relative}
-</style><link rel="stylesheet" href="maintenance.css?v=20261114-4"><link rel="icon" type="image/svg+xml" href="icons/gear.svg"><link rel="stylesheet" href="layout.css?v=20261117-five-7"><link rel="stylesheet" href="flow-registry.css?v=20261117-send-26"></head><body>
+</style><link rel="stylesheet" href="maintenance.css?v=20261114-4"><link rel="icon" type="image/svg+xml" href="icons/gear.svg"><link rel="stylesheet" href="layout.css?v=20261117-five-7"><link rel="stylesheet" href="flow-registry.css?v=20261117-endpoint-27"></head><body>
 <header><nav><div><div class="eyebrow">Fazenda Oasis / Gestão hídrica</div><h1>Controle de Vazão</h1><p><span class="status-dot" id="statusDot"></span><span id="statusText" role="status">Conectando à planilha...</span><span id="statusPing" hidden></span></p></div><div class="header-actions"><button onclick="reloadData()"><span id="refreshIcon"></span>↻ Atualizar</button><button class="export-btn" onclick="exportDashboard('jpeg')">↓ JPEG</button><button class="export-btn primary" onclick="exportDashboard('pdf')">↓ Exportar PDF</button></div></nav></header>
 <main>
 <div class="dashboard-tabs" role="tablist" aria-label="Seções do painel">
@@ -636,4 +636,4 @@ async function exportDashboard(format) {
  }catch(err){console.error(err);showToast('Não foi possível gerar o relatório. Tente novamente.','error');}
  finally{controls.forEach((c,i)=>c.disabled=disabledStates[i]);buttons.forEach((b,i)=>{b.textContent=labels[i];});}
 }
-</script><script src="maintenance.js?v=20261114-portal-1"></script><script src="maintenance-history.js?v=20261117-fluid-1"></script><script src="planilhas.js?v=20261114-1"></script><script src="tendencia.js?v=20261117-parts-5"></script><script src="layout.js?v=20261117-five-7"></script><script src="flow-registry-core.js?v=20261117-send-26"></script><script src="flow-registry.js?v=20261117-send-26"></script></body></html>
+</script><script src="maintenance.js?v=20261114-portal-1"></script><script src="maintenance-history.js?v=20261117-fluid-1"></script><script src="planilhas.js?v=20261114-1"></script><script src="tendencia.js?v=20261117-parts-5"></script><script src="layout.js?v=20261117-five-7"></script><script src="flow-registry-core.js?v=20261117-endpoint-27"></script><script src="flow-registry.js?v=20261117-endpoint-27"></script></body></html>

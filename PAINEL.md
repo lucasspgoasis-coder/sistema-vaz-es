@@ -103,3 +103,7 @@ A sexta aba calcula 15 litros ÷ segundos × 3600 e envia Data, Poço, Hora e Va
 
 ### Correção da gravação de vazão · integração v2
 O endpoint em uso ainda respondeu com o script antigo durante o diagnóstico. A nova integração verifica destino, versão e existência da coleta diretamente na aba, informa linha gravada, permite URL de nova implantação e retoma registros antigos sem confirmação. Código e instruções estão em integracao-vazao.gs e INTEGRACAO-VAZAO.md. A implantação do Apps Script precisa ser atualizada pelo proprietário; a sessão de controle do computador não estava disponível para editar o Google.
+
+
+### Nova implantação de vazão configurada
+Em 17/11/2026, a URL nova fornecida pelo proprietário respondeu com versão vazao-cadastro-2 e destino base de dados na planilha Controle de Vazão de Poços - SPG Oásis. O endereço padrão foi atualizado e a URL antiga salva é migrada automaticamente, sem alterar outras URLs personalizadas.

@@ -31,6 +31,9 @@ test('Confirmação genérica sem coleta no destino não é marcada como gravaç
 test('URL da nova implantação é salva e um envio antigo pode ser recuperado sem perder os dados',async()=>{
  const old=C.create({date:'2026-11-17',hour:'09:30',well:'03',seconds:'30'},'old-request');old.status='sent';const memory=new Map([['oasis.flowRegistry.v1',JSON.stringify([old])]]),a=await app(memory);assert.equal(a.w.FlowRegistry.state()[0].status,'received');const url='https://script.google.com/macros/s/NOVA_IMPLANTACAO/exec';a.get('flowEntryEndpoint').value=url;await a.w.FlowRegistry.resume(old.id);assert.equal(a.w.FlowRegistry.state().length,1);assert.equal(a.w.FlowRegistry.state()[0].status,'sent');assert.equal(a.requests.find(r=>r.options.method==='POST').url,url);assert.equal(memory.get('oasis.flowRegistry.v1.endpoint'),url);a.close();
 });
+test('URL antiga salva no aparelho migra para a implantação nova fornecida pelo proprietário',async()=>{
+ const memory=new Map([['oasis.flowRegistry.v1.endpoint',C.retiredEndpoints[0]]]),a=await app(memory);assert.equal(a.get('flowEntryEndpoint').value,C.endpoint);assert.equal(memory.get('oasis.flowRegistry.v1.endpoint'),C.endpoint);a.fill();await a.w.FlowRegistry.send();assert.equal(a.requests.find(r=>r.options.method==='POST').url,C.endpoint);assert.equal(a.w.FlowRegistry.state()[0].status,'sent');a.close();
+});
 
 test('Apps Script ajustado usa a aba correta, ocupa linha com fórmulas e não duplica coletas',async()=>{
  const head=['Data','Poço','Hora','Vazão (L/H)','Ano','Semana','Contagem','Mês','total','Período (Automático)'],data=[head,[new Date('2026-11-16T00:00:00Z'),'poço 01',.25,1000,2026,47,'novembro',11,6,'Manhã'],['','','','',1899,52,'dezembro',12,0,'Madrugada'],['','','','',1899,52,'dezembro',12,0,'Madrugada']],formulas=new Map([['3,5','=YEAR(A3)']]),formats=new Map();let writes=0;

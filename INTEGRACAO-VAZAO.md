@@ -1,6 +1,6 @@
 # Corrigir a gravação de vazão
 
-A URL originalmente fornecida ainda responde com o script antigo, sem identificar a aba nem conferir a coleta gravada. O app atualizado exige a integração **vazao-cadastro-2** antes de enviar. Isso evita uma confirmação genérica que não garante que o registro esteja na aba correta.
+A nova implantação fornecida pelo proprietário foi verificada em leitura em 17/11/2026: versão **vazao-cadastro-2**, planilha **Controle de Vazão de Poços - SPG Oásis**, aba **base de dados**. O app já usa essa URL e migra o endereço antigo salvo no aparelho. Outros endereços configurados manualmente são preservados. A integração confere a coleta na aba antes de confirmar a gravação.
 
 ## Atualizar a implantação existente
 
