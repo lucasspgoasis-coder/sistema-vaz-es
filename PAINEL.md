@@ -79,3 +79,7 @@ Referências gerais: [UMN – brócolis](https://extension.umn.edu/garden-and-ho
 
 ### Transplantio · Mudas por dia
 A aba soma as colunas Bandejas e Mudas da planilha por dia, bloco e variedade, incluindo todos os lançamentos do grupo. Filtros independentes de dia, bloco e variedade. Inicializa no último dia disponível e exibe estado vazio quando não há registros. Mudas é o valor registrado na planilha; não há conversão estimada de bandejas em mudas.
+
+
+### Alinhamento das fotos e exportação diária em PNG
+Os campos do histórico fotográfico compartilham linhas por subgrid, preservando o texto completo; os botões mantêm o alinhamento dos cartões. Mudas por dia permite baixar uma imagem PNG com os filtros atuais, totais gerais, bloco, data, variedades, bandejas e mudas. O relatório tem margens A4, ícones desenhados e cabeçalho por página. Se houver várias páginas, são reunidas em um único PNG vertical. O relatório usa desenho local, sem depender de bibliotecas ou fontes externas.
