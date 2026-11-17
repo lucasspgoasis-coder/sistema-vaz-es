@@ -52,3 +52,9 @@ A análise opcional usa o modelo geral Xenova/clip-vit-base-patch32 quantizado c
 O modelo compara aspectos visuais pré-definidos. Não é um modelo agronômico validado para confirmar a causa de perdas. Resultados ambíguos ou imagens sem evidência agrícola recebem texto inconclusivo. A causa continua identificada como informada pelo responsável e a descrição de IA como sugestão a revisar. Se o aparelho ou a conexão não permitirem a análise, o cadastro e a descrição manual continuam disponíveis. A inferência real do backend WASM foi conferida com a imagem pública de demonstração do modelo, separadamente dos testes sem rede.
 
 Referências de implementação: [modelo e uso](https://huggingface.co/Xenova/clip-vit-base-patch32), [aplicação no navegador](https://huggingface.co/docs/transformers.js/tutorials/vanilla-js), [RawImage.fromBlob](https://huggingface.co/docs/transformers.js/api/utils/image).
+
+### Edição e exclusão de fotos
+
+Os botões Editar foto e Excluir foto aparecem na galeria e nas miniaturas do histórico. O editor permite alterar o nome de exibição, corrigir a descrição e substituir a imagem. A substituição preserva a foto anterior em photoArchive e invalida a análise vinculada aos bytes da imagem anterior. Os downloads de originais mantêm o nome do arquivo original.
+
+A exclusão retira a foto da lista ativa e dos relatórios, mas permite restauração em Fotos excluídas e versões anteriores. Excluir a última foto deixa o levantamento como rascunho, sem apagar seus arquivos. Fotos restauradas continuam em ordem alfabética. Galeria, miniaturas e áreas de foto no JPEG/PDF usam quadros 4:3; as imagens são centralizadas e contidas sem corte ou deformação.
