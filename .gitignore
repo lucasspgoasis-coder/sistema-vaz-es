@@ -1,3 +1,5 @@
 .runtime/
 cadastros-api/
 *.sites.tar.gz
+
+node_modules/

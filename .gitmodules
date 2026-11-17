@@ -4,3 +4,9 @@
 [submodule "sistema-rocadeira"]
 	path = sistema-rocadeira
 	url = https://github.com/lucasspgoasis-coder/sistema-ro-adeira.git
+[submodule "sistema-transplantio"]
+	path = sistema-transplantio
+	url = https://github.com/lucasspgoasis-coder/plantio-integrado.git
+[submodule "sistema-perdas"]
+	path = sistema-perdas
+	url = https://github.com/lucasspgoasis-coder/pesos-colhido.git
