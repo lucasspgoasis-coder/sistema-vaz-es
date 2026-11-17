@@ -15,7 +15,7 @@ var PhotoDocAnalysis=(()=>{
  function interpret(results,at=new Date().toISOString()){
   const ranked=[...results].filter(r=>Number.isFinite(r.score)&&r.score>=0&&r.score<=1&&candidates.some(c=>c.label===r.label)).sort((a,b)=>b.score-a.score),first=ranked[0],second=ranked[1];
   const candidate=candidates.find(c=>c.label===first?.label),ambiguous=!candidate||first.score<.45||(second&&first.score-second.score<.12);
-  return {status:ambiguous||['unclear','not_crop'].includes(candidate?.id)?'inconclusive':'complete',text:ambiguous?'Os aspectos visuais comparados não tiveram distinção suficiente para uma descrição confiável. A causa deve ser informada e conferida pelo responsável.':candidate.text,model,at,category:ambiguous?'unclear':candidate.id,reviewRequired:true,scores:ranked.slice(0,3).map(r=>({category:candidates.find(c=>c.label===r.label).id,similarity:r.score}))};
+  return {status:ambiguous||['unclear','not_crop'].includes(candidate?.id)?'inconclusive':'complete',text:ambiguous||['unclear','not_crop'].includes(candidate?.id)?'':candidate.text,model,at,category:ambiguous?'unclear':candidate.id,reviewRequired:true,scores:ranked.slice(0,3).map(r=>({category:candidates.find(c=>c.label===r.label).id,similarity:r.score}))};
  }
  return {model,candidates,interpret};
 })();
