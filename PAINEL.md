@@ -62,3 +62,7 @@ A exclusão retira a foto da lista ativa e dos relatórios, mas permite restaura
 
 ### Cadastro rápido no Documentário
 O campo Causa foi removido do cadastro. Bloco, data e uma foto bastam para documentar. O detalhamento visual é preenchido abaixo de cada imagem, salvo no histórico e incluído nos relatórios. Causas de registros antigos permanecem preservadas.
+
+
+### Enviar bloco ao histórico
+Após anexar fotos, Adicionar ao histórico conclui o registro, confirma a gravação e limpa o formulário para o próximo bloco. O histórico exibe todas as fotos com seu detalhamento visual. O salvamento automático continua protegendo o registro em edição.
