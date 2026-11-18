@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Sistema integrado",
   "short_name": "Sistema integrado",
-  "description": "Sistema integrado da Fazenda Oasis: vazão, adubação, roçadeira, transplantio e perdas.",
+  "description": "Sistema integrado da Fazenda Oasis: vazão, adubação, roçadeira, transplantio, perdas e áreas dos blocos.",
   "lang": "pt-BR",
   "start_url": "./?app=1",
   "scope": "./",

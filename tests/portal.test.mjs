@@ -8,22 +8,22 @@ const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
 const nodes=new Map(),memory=new Map(),events={};let resizeCount=0;
 function element(){const attrs={};return {children:[],dataset:{},value:'',hidden:false,contentWindow:{Event:class{},dispatchEvent(){resizeCount++;}},append(...items){this.children.push(...items);},setAttribute(key,value){attrs[key]=value;},removeAttribute(key){delete attrs[key];},getAttribute:key=>attrs[key],focus(){},showModal(){this.open=true;},close(){this.open=false;}};}
 function get(id){assert.ok(ids.includes(id),'Elemento declarado no HTML: '+id);if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);}
-const nav=['inicio','vazao','adubacao','rocadeira','transplantio','perdas','documentario'].map(name=>{const item=element();item.dataset.nav=name;return item;});
-const cards=['vazao','adubacao','rocadeira','transplantio','perdas','documentario'].map(name=>{const item=element();item.dataset.systemCard=name;return item;});
+const nav=['inicio','vazao','adubacao','rocadeira','transplantio','perdas','documentario','area'].map(name=>{const item=element();item.dataset.nav=name;return item;});
+const cards=['vazao','adubacao','rocadeira','transplantio','perdas','documentario','area'].map(name=>{const item=element();item.dataset.systemCard=name;return item;});
 const context=vm.createContext({window:{addEventListener(name,handler){events[name]=handler;},matchMedia:()=>({matches:false})},document:{getElementById:get,createElement:element,querySelectorAll:selector=>selector==='[data-nav]'?nav:cards,addEventListener(){}},location:{hash:''},navigator:{onLine:true,userAgent:'Test'},localStorage:{getItem:key=>memory.get(key)||'',setItem:(key,value)=>memory.set(key,value)},setTimeout(){},console});
 vm.runInContext(source,context);
-test('Tela inicial possui seis sistemas, sem perfis, senha ou cadastros',async()=>{
- assert.equal(ids.length,new Set(ids).size);assert.equal((html.match(/data-system-card=/g)||[]).length,6);
+test('Tela inicial possui sete sistemas, sem perfis, senha ou cadastros',async()=>{
+ assert.equal(ids.length,new Set(ids).size);assert.equal((html.match(/data-system-card=/g)||[]).length,7);
  assert.equal(/accessScreen|managerPassword|panel-registry|app-access|OASIS_API/.test(html),false);
- for(const path of ['vazao.html','sistema-adubacao/index.html','sistema-rocadeira/index.html','sistema-transplantio/index.html','sistema-perdas/index.html','documentario/index.html'])await access(new URL('../'+path,import.meta.url));
+ for(const path of ['vazao.html','sistema-adubacao/index.html','sistema-rocadeira/index.html','sistema-transplantio/index.html','sistema-perdas/index.html','documentario/index.html','area-blocos/index.html'])await access(new URL('../'+path,import.meta.url));
  const flow=await readFile(new URL('../vazao.html',import.meta.url),'utf8');assert.equal((flow.match(/role="tab"/g)||[]).length,6);assert.equal(/app-access|managerPassword/.test(flow),false);assert.ok(flow.includes('panel-registry'));assert.ok(flow.includes('docs.google.com/spreadsheets'));
  new vm.Script(flow.match(/<script>([\s\S]*?)<\/script>/)[1]);
 });
-test('Alterna os seis módulos, preserva seus quadros e permite atualizar',()=>{
+test('Alterna os sete módulos, preserva seus quadros e permite atualizar',()=>{
  vm.runInContext('renderPortalRoute()',context);assert.equal(get('portalHome').hidden,false);
- for(const name of ['vazao','adubacao','rocadeira','transplantio','perdas','documentario']){context.location.hash='#'+name;events.hashchange();assert.equal(get('portalWorkspace').hidden,false);const frame=get('systemFrames').children.at(-1);assert.ok(frame.src.includes(name==='vazao'?'vazao.html':name==='documentario'?'documentario/index.html':'sistema-'+name));frame.onload();assert.equal(get('workspaceLoading').hidden,true);}
- assert.equal(get('systemFrames').children.length,6);
- context.location.hash='#vazao';events.hashchange();assert.equal(get('systemFrames').children.length,6,'Reutiliza quadros para preservar os filtros');assert.ok(resizeCount>0);
+ for(const name of ['vazao','adubacao','rocadeira','transplantio','perdas','documentario','area']){context.location.hash='#'+name;events.hashchange();assert.equal(get('portalWorkspace').hidden,false);const frame=get('systemFrames').children.at(-1);assert.ok(frame.src.includes(name==='vazao'?'vazao.html':name==='documentario'?'documentario/index.html':name==='area'?'area-blocos/index.html':'sistema-'+name));frame.onload();assert.equal(get('workspaceLoading').hidden,true);}
+ assert.equal(get('systemFrames').children.length,7);
+ context.location.hash='#vazao';events.hashchange();assert.equal(get('systemFrames').children.length,7,'Reutiliza quadros para preservar os filtros');assert.ok(resizeCount>0);
  vm.runInContext('refreshPortalSystem()',context);assert.ok(get('systemFrames').children[0].src.includes('atualizar='));assert.equal(get('workspaceLoading').hidden,false);
  context.location.hash='#inicio';events.hashchange();assert.equal(get('portalWorkspace').hidden,true);assert.equal(get('lastSystemBox').hidden,false);
  context.location.hash='#constructor';events.hashchange();assert.equal(get('portalHome').hidden,false,'Rota desconhecida volta ao início');
@@ -32,7 +32,7 @@ test('Busca encontra nomes com ou sem acentos e abre o único resultado',()=>{
  get('systemSearch').value='rocadeira';vm.runInContext('filterPortalSystems()',context);assert.equal(cards.filter(card=>!card.hidden).length,1);assert.equal(cards[2].hidden,false);
  context.keyboardEvent={key:'Enter'};vm.runInContext('portalSearchKey(keyboardEvent)',context);assert.equal(context.location.hash,'rocadeira');
  get('systemSearch').value='inexistente';vm.runInContext('filterPortalSystems()',context);assert.equal(get('systemSearchEmpty').hidden,false);
- get('systemSearch').value='';vm.runInContext('filterPortalSystems()',context);assert.equal(cards.filter(card=>!card.hidden).length,6);
+ get('systemSearch').value='';vm.runInContext('filterPortalSystems()',context);assert.equal(cards.filter(card=>!card.hidden).length,7);
 });
 test('Instalação possui nome novo e ícones de engrenagem nas dimensões corretas',async()=>{
  const manifest=JSON.parse(await readFile(new URL('../manifest.webmanifest',import.meta.url),'utf8'));assert.equal(manifest.name,'Sistema integrado');assert.equal(manifest.id,'./');assert.equal(manifest.display,'standalone');
