@@ -116,3 +116,6 @@ O envio normal usa a confirmação com aba e linha retornada pelo Apps Script, s
 ### Área dos blocos e resumo de mudas por variedade
 O sétimo módulo, Área dos blocos, guarda medidas por bloco neste aparelho, permite editar e estima a área pelo modelo de trapézio: (largura esquerda + direita) / 2 × distância perpendicular. Converte m² em hectares por divisão por 10.000. O desenho é ilustrativo, sem escala, e rotula as três medidas e os resultados. Medidas de terrenos irregulares podem exigir outro levantamento.
 O PNG de Mudas por ciclo inclui campos gerais por variedade, agregando bandejas e mudas de todos os blocos e datas dentro dos filtros atuais, além do total de mudas e do detalhamento já existente.
+
+### Relatórios técnicos das áreas
+Na Área dos blocos, cada cadastro permite baixar um PDF com medidas, área estimada em m²/ha, desenho ilustrativo e memória de cálculo. O botão de todas as áreas gera uma página por bloco em ordem alfabética natural, incluindo todos os cadastros salvos neste aparelho, independentemente da pesquisa ativa.
