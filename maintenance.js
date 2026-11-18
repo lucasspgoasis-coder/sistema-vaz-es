@@ -22,21 +22,21 @@ function maintenanceTotals(stops,today=maintenanceToday()){
  return [...byWell].map(([well,ranges])=>{ranges.sort((a,b)=>a[0]-b[0]);let days=0,last=null;for(const range of ranges){if(last&&range[0]<=last[1])last[1]=Math.max(last[1],range[1]);else{if(last)days+=last[1]-last[0];last=[...range];}}if(last)days+=last[1]-last[0];return {well,days};}).sort((a,b)=>b.days-a.days||a.well.localeCompare(b.well));
 }
 function maintenanceCell(value){const cell=document.createElement('td');cell.textContent=value===undefined||value===null||value===''?'—':String(value);return cell;}
-function maintenanceTable(id,headers,rows){const table=document.getElementById(id);table.replaceChildren();const head=document.createElement('thead'),tr=document.createElement('tr');headers.forEach(label=>{const th=document.createElement('th');th.scope='col';th.textContent=label;tr.append(th);});head.append(tr);const body=document.createElement('tbody');rows.forEach(values=>{const row=document.createElement('tr');values.forEach(value=>row.append(maintenanceCell(value)));body.append(row);});if(!rows.length){const row=document.createElement('tr'),cell=maintenanceCell('Nenhum registro para os filtros selecionados.');cell.colSpan=headers.length;row.append(cell);body.append(row);}table.append(head,body);}
-function maintenanceMetric(id,value){document.getElementById(id).textContent=value;}
+function maintenanceTable(id,headers,rows){const table=document.getElementById(id);if(!table)return;table.replaceChildren();const head=document.createElement('thead'),tr=document.createElement('tr');headers.forEach(label=>{const th=document.createElement('th');th.scope='col';th.textContent=label;tr.append(th);});head.append(tr);const body=document.createElement('tbody');rows.forEach(values=>{const row=document.createElement('tr');values.forEach(value=>row.append(maintenanceCell(value)));body.append(row);});if(!rows.length){const row=document.createElement('tr'),cell=maintenanceCell('Nenhum registro para os filtros selecionados.');cell.colSpan=headers.length;row.append(cell);body.append(row);}table.append(head,body);}
+function maintenanceMetric(id,value){const target=document.getElementById(id);if(target)target.textContent=value;}
 function maintenanceFilteredStops(){return maintenanceStops().filter(s=>(!maintenanceFilter.well||s.well===maintenanceFilter.well)&&(!maintenanceFilter.status||s.status===maintenanceFilter.status));}
-function maintenanceOptions(){const select=document.getElementById('maintenanceWell');const previous=maintenanceFilter.well;select.replaceChildren();const wells=[...new Set([...maintenanceBase.map(r=>maintenanceWell(r['POÇO'])),...maintenanceAnalysis.flatMap(r=>[maintenanceWell(r['Medidor (R2)']),maintenanceWell(r['Medidor (R3)']),maintenanceWell(r['Poços Parados'])])].filter(Boolean))].sort();for(const well of ['',...wells]){const option=document.createElement('option');option.value=well;option.textContent=well||'Todos os poços';select.append(option);}select.value=previous;}
+function maintenanceOptions(){const select=document.getElementById('maintenanceWell');if(!select)return;const previous=maintenanceFilter.well;select.replaceChildren();const wells=[...new Set([...maintenanceBase.map(r=>maintenanceWell(r['POÇO'])),...maintenanceAnalysis.flatMap(r=>[maintenanceWell(r['Medidor (R2)']),maintenanceWell(r['Medidor (R3)']),maintenanceWell(r['Poços Parados'])])].filter(Boolean))].sort();for(const well of ['',...wells]){const option=document.createElement('option');option.value=well;option.textContent=well||'Todos os poços';select.append(option);}select.value=previous;}
 function maintenanceApply(){maintenanceFilter.well=document.getElementById('maintenanceWell').value;maintenanceFilter.status=document.getElementById('maintenanceState').value;renderMaintenance();}
 function maintenanceChart(id,config){const canvas=document.getElementById(id);if(!canvas||canvas.closest('[hidden]'))return;maintenanceCharts.push(new Chart(canvas,config));}
 function renderMaintenance(){
  maintenanceCharts.forEach(chart=>chart.destroy());maintenanceCharts=[];
  const stops=activeDashboardTab==='meters'?maintenanceStops():maintenanceFilteredStops(),totals=maintenanceTotals(stops),base=maintenanceBase.filter(row=>!maintenanceFilter.well||maintenanceWell(row['POÇO'])===maintenanceFilter.well);
  maintenanceMetric('maintenanceRecords',base.length);maintenanceMetric('maintenanceStopped',new Set(stops.filter(s=>s.current).map(s=>s.well)).size);maintenanceMetric('maintenanceDays',totals.reduce((sum,item)=>sum+item.days,0));maintenanceMetric('maintenanceFinished',stops.filter(s=>s.status==='Concluída').length);
- renderMaintenanceHistory(base);
+ if(document.getElementById('maintenanceTechnicalRecord'))renderMaintenanceHistory(base);
  maintenanceTable('maintenancePeriods',['Poço','Início da parada','Retorno','Situação','Dias parados'],stops.map(s=>[s.well,maintenanceDisplay(s.start),s.end?maintenanceDisplay(s.end):'Sem retorno informado',s.status,s.days]));
- renderMaintenanceCharts(stops,totals);
+ if(document.getElementById('panel-maintenance'))renderMaintenanceCharts(stops,totals);
  for(const meter of ['R2','R3']){
-  const target=document.getElementById('meter'+meter);target.replaceChildren();
+  const target=document.getElementById('meter'+meter);if(!target)continue;target.replaceChildren();
   const wells=[...new Set(maintenanceAnalysis.map(r=>maintenanceWell(r['Medidor ('+meter+')'])).filter(Boolean))].sort();
   wells.filter(well=>activeDashboardTab==='meters'||!maintenanceFilter.well||well===maintenanceFilter.well).forEach(well=>{const ongoing=maintenanceStops().filter(s=>s.well===well&&s.current);const card=document.createElement('div');card.className='meter-well'+(ongoing.length?' stopped':'');const title=document.createElement('strong');title.textContent=well;const note=document.createElement('small');note.textContent=ongoing.length?'Em manutenção · '+maintenanceTotals(ongoing)[0]?.days+' dias':'Sem parada em aberto informada';card.append(title,note);target.append(card);});
   maintenanceMetric('meterCount'+meter,wells.length+' poços únicos');
@@ -93,7 +93,7 @@ async function loadMaintenanceData(){
  }finally{maintenanceLoading=false;maintenanceOptions();if(['maintenance','meters'].includes(activeDashboardTab))renderMaintenance();}
 }
 function openMaintenanceTab(tab){
- activeDashboardTab=tab;for(const name of ['overview','daily','maintenance','meters']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
+ activeDashboardTab=tab;for(const name of ['overview','daily','meters']){document.getElementById('panel-'+name).hidden=name!==tab;document.getElementById('tab-'+name).setAttribute('aria-selected',String(name===tab));}
  document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);
  renderMaintenance();if(!maintenanceLoaded)loadMaintenanceData();
 }

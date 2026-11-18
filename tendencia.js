@@ -38,7 +38,7 @@ function renderTrend(){
  trendChart=trendCharts[0]||null;
 }
 const baseSwitchDashboardTab=switchDashboardTab;
-switchDashboardTab=function(tab){document.getElementById('panel-trend').hidden=tab!=='trend';document.getElementById('tab-trend').setAttribute('aria-selected',String(tab==='trend'));if(tab!=='trend'){baseSwitchDashboardTab(tab);return;}activeDashboardTab='trend';for(const name of ['overview','daily','maintenance','meters']){document.getElementById('panel-'+name).hidden=true;document.getElementById('tab-'+name).setAttribute('aria-selected','false');}document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);renderTrend();};
+switchDashboardTab=function(tab){document.getElementById('panel-trend').hidden=tab!=='trend';document.getElementById('tab-trend').setAttribute('aria-selected',String(tab==='trend'));if(tab!=='trend'){baseSwitchDashboardTab(tab);return;}activeDashboardTab='trend';for(const name of ['overview','daily','meters']){document.getElementById('panel-'+name).hidden=true;document.getElementById('tab-'+name).setAttribute('aria-selected','false');}document.querySelectorAll('.export-btn').forEach(button=>button.hidden=true);renderTrend();};
 const baseApplyFlowFilters=applyFilters;
 applyFilters=function(){if(activeDashboardTab==='trend'){renderTrend();return;}baseApplyFlowFilters();};
 

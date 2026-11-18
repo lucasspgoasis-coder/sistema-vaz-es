@@ -119,3 +119,6 @@ O PNG de Mudas por ciclo inclui campos gerais por variedade, agregando bandejas 
 
 ### Relatórios técnicos das áreas
 Na Área dos blocos, cada cadastro permite baixar um PDF com medidas, área estimada em m²/ha, desenho ilustrativo e memória de cálculo. O botão de todas as áreas gera uma página por bloco em ordem alfabética natural, incluindo todos os cadastros salvos neste aparelho, independentemente da pesquisa ativa.
+
+### Manutenção dos poços
+A manutenção possui módulo próprio no menu principal, em manutencao.html. A Vazão mantém Detalhado, Diário, Medidores, Tendência e Cadastro. Ambos consultam a mesma fonte de manutenção para os respectivos indicadores, preservando histórico técnico, filtros e dados de paradas.
