@@ -131,3 +131,6 @@ O relatório não exibe a quantidade transplantada; ela permanece como base inte
 
 ### Comparativo por bloco e folha contínua
 Os relatórios identificam em campos separados a quantidade por causa do bloco analisado (azul), do bloco anterior (roxo) e a diferença entre ambos (vermelho para aumento, verde para redução). PDF tem uma única página de altura variável e PNG é uma única imagem vertical, com título, subtítulo e logotipo somente no início.
+
+### Cores e leitura dos relatórios
+O relatório contínuo identifica alto índice (800 unidades ou mais, rosa/vermelho), médio (500–799, âmbar) e baixo (abaixo de 500, verde-petróleo), com legenda das faixas existentes no cadastro. O título da comparação é “Comparação com o bloco anterior”. Detalhamento em fundo suave, números ampliados e contornos coloridos de causas e fotos melhoram a leitura sem alterar os cálculos.
