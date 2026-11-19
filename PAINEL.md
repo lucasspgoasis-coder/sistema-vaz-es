@@ -125,3 +125,6 @@ A manutenção possui módulo próprio no menu principal, em manutencao.html. A 
 
 ### Relatórios detalhados de perdas em PDF e PNG
 Os arquivos incluem logo, bloco analisado, ciclo, cultura, variedade, encerramento, dias de produção e resumo de transplantado/colhido/perdido. Cada causa fica junto das fotos em quadros uniformes com proporção preservada, quantidade, percentual sobre o total transplantado e comparação de volume com o bloco anterior. O saldo sem detalhamento aparece ao final com quantidade, percentual e explicação. O botão PNG reúne relatórios de várias páginas em ZIP com imagens por página. Registros antigos têm os arquivos renovados ao abrir/baixar, sem alterar os dados originais.
+
+### Refinamento visual dos relatórios de perdas
+O relatório não exibe a quantidade transplantada; ela permanece como base interna dos percentuais. As fotos preenchem os quadros com recorte central e proporção preservada. Dados gerais, resumo, causas e saldo do Pack House recebem contornos discretos. O texto final esclarece que o descarte global do lote impossibilita a triagem e a contabilização individual da causa primária de cada cabeça/unidade.
