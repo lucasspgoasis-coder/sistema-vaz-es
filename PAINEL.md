@@ -122,3 +122,6 @@ Na Área dos blocos, cada cadastro permite baixar um PDF com medidas, área esti
 
 ### Manutenção dos poços
 A manutenção possui módulo próprio no menu principal, em manutencao.html. A Vazão mantém Detalhado, Diário, Medidores, Tendência e Cadastro. Ambos consultam a mesma fonte de manutenção para os respectivos indicadores, preservando histórico técnico, filtros e dados de paradas.
+
+### PDF de Perdas igual ao histórico
+O PDF incorpora as próprias imagens de página salvas no registro, sem montar outro visual. PDFs antigos são atualizados ao abrir/baixar usando as imagens preservadas, sem alterar dados e fotos.
