@@ -137,3 +137,6 @@ O relatório contínuo identifica alto índice (800 unidades ou mais, rosa/verme
 
 ### Relatório tabular de contagem de perdas
 O modelo contínuo agora organiza causa/detalhamento, fotos, bloco analisado, bloco anterior, comparação e percentual em colunas. As linhas crescem conforme o texto e a quantidade de fotos. Não exibe total colhido, quantidade transplantada ou legenda de faixas; os totais de alto, médio e baixo índice aparecem nos campos gerais do topo, por causas registradas.
+
+### Centralização e ícones do relatório tabular
+Cabeçalhos e valores das colunas do bloco analisado, anterior e comparação são centralizados. O resultado utiliza ícones de tendência de alta/baixa/estabilidade. Cada causa recebe um ícone ilustrativo ao lado do nome conforme o texto cadastrado; o rodapé do Pack House destaca galpão, caixas, lote e os campos de quantidade e percentual do saldo.
