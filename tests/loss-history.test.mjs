@@ -44,3 +44,7 @@ test('Faixas de índice preservam os limites existentes do cadastro',async()=>{
 test('Ícones de causas representam o nome registrado, incluindo acentos',async()=>{
  const ctx=vm.createContext({});vm.runInContext(await read('history-report.js'),ctx);const icon=ctx.LossHistoryReport.causeIcon;for(const [name,type] of [['Pulgão','bug'],['Fungos','fungus'],['Estresse Hídrico','drop'],['Esquiara','gnat'],['Traça','moth'],['Lagarta Rosca','caterpillar'],['Formiga Cortadeira','ant'],['Cabeça pequena','smallhead'],['Queima por adubação','flame'],['Mal desenvolvidas','sprout']])assert.equal(icon(name),type);
 });
+
+test('Exclusão remove arquivos e rascunho associado sem afetar outro registro',async()=>{
+ const factory=new IDBFactory();let db=await core.open(factory);const a=record('a'),b=record('b');a.png=new Blob(['foto']);await core.put(db,a);await core.put(db,b);await core.draft(db,{currentId:'a',data:a.data});await core.remove(db,'a');assert.equal(await core.get(db,'a'),undefined);assert.equal(await core.draft(db),undefined);assert.equal((await core.get(db,'b')).id,'b');assert.equal(await core.attachFiles(db,'a',a.fingerprint,{pdf:new Blob(['atrasado'])}),false);db.close();db=await core.open(factory);assert.equal(await core.get(db,'a'),undefined);await core.draft(db,{currentId:'b',data:b.data});await core.remove(db,'a');assert.equal((await core.draft(db)).currentId,'b');db.close();
+});
