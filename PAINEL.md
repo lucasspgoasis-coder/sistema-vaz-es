@@ -134,3 +134,6 @@ Os relatórios identificam em campos separados a quantidade por causa do bloco a
 
 ### Cores e leitura dos relatórios
 O relatório contínuo identifica alto índice (800 unidades ou mais, rosa/vermelho), médio (500–799, âmbar) e baixo (abaixo de 500, verde-petróleo), com legenda das faixas existentes no cadastro. O título da comparação é “Comparação com o bloco anterior”. Detalhamento em fundo suave, números ampliados e contornos coloridos de causas e fotos melhoram a leitura sem alterar os cálculos.
+
+### Relatório tabular de contagem de perdas
+O modelo contínuo agora organiza causa/detalhamento, fotos, bloco analisado, bloco anterior, comparação e percentual em colunas. As linhas crescem conforme o texto e a quantidade de fotos. Não exibe total colhido, quantidade transplantada ou legenda de faixas; os totais de alto, médio e baixo índice aparecem nos campos gerais do topo, por causas registradas.
