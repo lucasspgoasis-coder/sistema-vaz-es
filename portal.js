@@ -21,14 +21,14 @@ function renderPortalRoute(){
  for(const link of document.querySelectorAll('[data-nav]')){if(link.dataset.nav===route)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
  for(const [key,frame] of portalFrames)frame.hidden=key!==route;
  if(home){document.getElementById('workspaceLoading').hidden=true;updatePortalRecent();return;}
- const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261121-loss-logo-47';
+ const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261121-app-update-48';
  portalWrite('oasis.portal.lastSystem',route);
  let frame=portalFrames.get(route);
  if(!frame){
   frame=document.createElement('iframe');frame.className='system-frame';frame.title='Sistema de '+system.name;frame.setAttribute('aria-label','Sistema de '+system.name);frame.dataset.loaded='false';
   frame.onload=()=>{frame.dataset.loaded='true';portalObserveFrame(frame);if(activePortalSystem===route){document.getElementById('workspaceLoading').hidden=true;portalResizeFrame(frame);}};
   frame.onerror=()=>{if(activePortalSystem===route)portalText('workspaceLoadingText','Não foi possível abrir o sistema. Use Atualizar sistema ou Abrir em nova guia.');};
-  frame.src=system.url+'?portal=20261121-loss-logo-47';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
+  frame.src=system.url+'?portal=20261121-app-update-48';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
  }
  frame.hidden=false;document.getElementById('workspaceLoading').hidden=frame.dataset.loaded==='true';portalText('workspaceLoadingText','Abrindo '+system.name+'…');
  if(frame.dataset.loaded==='true')portalResizeFrame(frame);
@@ -36,7 +36,7 @@ function renderPortalRoute(){
 function refreshPortalSystem(){
  const frame=portalFrames.get(activePortalSystem);if(!frame)return;
  frame.dataset.loaded='false';document.getElementById('workspaceLoading').hidden=false;portalText('workspaceLoadingText','Atualizando '+PORTAL_SYSTEMS[activePortalSystem].name+'…');
- frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261121-loss-logo-47&atualizar='+Date.now();
+ frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261121-app-update-48&atualizar='+Date.now();
 }
 function updatePortalRecent(){const last=portalRead('oasis.portal.lastSystem');const valid=Object.prototype.hasOwnProperty.call(PORTAL_SYSTEMS,last);document.getElementById('lastSystemBox').hidden=!valid;if(valid){document.getElementById('lastSystemLink').href='#'+last;portalText('lastSystemName',PORTAL_SYSTEMS[last].name);}}
 function filterPortalSystems(){const query=portalNormalize(document.getElementById('systemSearch').value.trim());let count=0;for(const card of document.querySelectorAll('[data-system-card]')){const system=PORTAL_SYSTEMS[card.dataset.systemCard];const matches=!query||portalNormalize(system.name+' '+(system.keywords||'')).includes(query);card.hidden=!matches;if(matches)count++;}document.getElementById('systemSearchEmpty').hidden=count>0;portalText('systemSearchStatus',count+' sistema'+(count===1?' disponível':'s disponíveis'));}
@@ -54,7 +54,6 @@ window.addEventListener('load',()=>{
  const now=new Date();portalText('portalDate',new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Fortaleza'}).format(now));
  const hour=Number(new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'America/Fortaleza'}).format(now));portalText('portalGreeting',hour<12?'Bom dia!':hour<18?'Boa tarde!':'Boa noite!');
  portalConnection();renderPortalRoute();updatePortalRecent();
- if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).catch(()=>{});
  if(!portalStandalone()&&Date.now()-Number(portalRead('oasis.portal.installDismissed','0'))>7*86400000)setTimeout(offerPortalInstall,1600);
  document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();document.getElementById('systemSearch').focus();}});
 });
