@@ -1,0 +1,20 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import {createCanvas,loadImage} from '@napi-rs/canvas';
+const source=await readFile('sistema-transplantio/transplant-summary.js','utf8'),core=vm.createContext({});vm.runInContext(source,core);
+function row(date,received,planted,lost,extra={}){return {local:'Bloco 1',ciclo:'7',cultura:'Brócolis',variedade:'BRO 68 Syngenta',dateObj:new Date(date+'T12:00:00'),mudas:received,transplantado:planted,perdas:lost,canteiros:null,mudasPorCanteiro:null,idadeMuda:32,...extra};}
+const rows=[row('2026-11-14',5600,5102,498),row('2026-11-14',7000,6712,288,{variedade:'Master TSV'}),row('2026-11-17',400,392,8,{canteiros:41,mudasPorCanteiro:397,idadeMuda:35}),row('2026-11-17',4000,3908,92,{variedade:'Master TSV',idadeMuda:35}),row('2026-11-18',800,0,800,{idadeMuda:36})];
+test('Canteiros são referência única do bloco/ciclo e diferença não altera o plantado',()=>{
+ const group=core.TransplantSummary.groups(rows)[0];assert.equal(group.rows.length,5);assert.equal(group.received,17800);assert.equal(group.planted,16114);assert.equal(group.lost,1686);assert.equal(group.expected,16277);assert.equal(group.delta,-163);assert.ok(core.TransplantSummary.explanation(group).includes('163 mudas a menos'));
+ const repeated=core.TransplantSummary.groups(rows.map(r=>({...r,canteiros:41,mudasPorCanteiro:397})))[0];assert.equal(repeated.bedCount,41);assert.equal(repeated.expected,16277);
+ const changed=core.TransplantSummary.groups([...rows,row('2026-11-19',0,0,0,{canteiros:42})])[0];assert.equal(changed.conflict,true);assert.equal(changed.expected,null);assert.ok(core.TransplantSummary.explanation(changed).includes('valores diferentes'));
+ assert.equal(core.TransplantSummary.groups([row('2026-11-14',100,90,10)])[0].expected,null);
+ const zero=core.TransplantSummary.groups([row('2026-11-14',0,0,0,{canteiros:0,mudasPorCanteiro:10})])[0];assert.equal(zero.expected,0);assert.ok(core.TransplantSummary.explanation(zero).includes('Confere'));
+ const scoped=core.TransplantSummary.scope([...rows,{...rows[0],ciclo:'8'},{...rows[0],local:'Bloco 2'}],new Set(['Bloco 1']),new Set(['7']));assert.equal(scoped.length,5);
+});
+test('PNG no estilo do modelo inclui todas as datas, variedades, totais e a conferência, sem corte',async()=>{
+ const printed=[],draws=[],bounds=[];const document={createElement:()=>{const canvas=createCanvas(1,1),get=canvas.getContext.bind(canvas);canvas.getContext=type=>{const ctx=get(type),fill=ctx.fillText.bind(ctx),draw=ctx.drawImage.bind(ctx);ctx.fillText=(value,x,y)=>{printed.push(String(value));const width=ctx.measureText(String(value)).width,left=ctx.textAlign==='center'?x-width/2:ctx.textAlign==='right'?x-width:x;assert.ok(left>=0&&left+width<=1200,'Largura do texto: '+value);assert.ok(y>=0&&y<canvas.height,'Altura do texto: '+value);bounds.push(y);return fill(value,x,y);};ctx.drawImage=(...args)=>{draws.push(args);return draw(...args);};return ctx;};canvas.toBlob=(callback,type)=>canvas.encode('png').then(bytes=>callback(new Blob([bytes],{type})));return canvas;}};
+ const context=vm.createContext({document,Blob,URL,Image:class{}});vm.runInContext(source,context);const logo=await loadImage(await readFile('sistema-transplantio/logo-report.png'));const output=await context.TransplantSummary.png(context.TransplantSummary.groups(rows),{logo});assert.equal(output.width,1200);assert.ok(output.height>1000);assert.equal(output.blob.type,'image/png');const written=printed.join(' ');for(const value of ['Resumo do Transplantio','Bloco 1','Ciclo 7','14/11','17/11','18/11','Master TSV','16.114','16.277','163 mudas','41','397'])assert.ok(written.includes(value),value);assert.equal(printed.filter(text=>text==='Resumo do Transplantio').length,1);assert.ok(draws.length);assert.ok(Math.abs(draws[0][3]/draws[0][4]-logo.width/logo.height)<0.0001);await writeFile('.runtime/transplant-summary-preview.png',Buffer.from(await output.blob.arrayBuffer()));
+});
