@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="portal.css?v=20261123-sheet-sync-51">
+  <link rel="stylesheet" href="portal.css?v=20261123-sync-status-52">
 </head>
 <body>
   <aside class="portal-sidebar">
@@ -34,6 +34,11 @@
   </aside>
   <main class="portal-main">
     <header class="portal-topbar"><div><p id="portalDate" class="portal-date"></p><h1 id="portalGreeting">Painel da fazenda</h1></div><div class="topbar-tools"><button class="portal-install-shortcut" type="button" onclick="offerPortalInstall()" aria-label="Instalar aplicativo" title="Instalar aplicativo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg></button><button id="appUpdateCheck" class="app-update-check" type="button" onclick="checkAppUpdate(true)" title="Verificar atualizações"><span class="app-update-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g class="app-update-orbit"><path d="M9 20a16 16 0 0 1 27-8l4 4M40 7v9h-9M39 28a16 16 0 0 1-27 8l-4-4M8 41v-9h9"/></g><path class="app-update-arrow" d="M24 32V17m-6 6 6-6 6 6"/></svg></span><span>Atualizações</span><span id="appUpdateBadge" hidden aria-label="Nova atualização disponível"></span></button><span id="portalConnection" class="connection-pill" role="status">Conexão disponível</span><label class="portal-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="systemSearch" type="search" placeholder="Buscar sistema" aria-label="Buscar sistema" oninput="filterPortalSystems()" onkeydown="portalSearchKey(event)"><kbd>/</kbd></label></div></header>
+    <section id="portalSyncPanel" class="portal-sync-panel" data-state="waiting" aria-label="Sincronização das planilhas">
+      <span class="portal-sync-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path class="portal-sync-arrows" d="M6 13a10 10 0 0 1 17-5l4 4m0-7v7h-7M26 19a10 10 0 0 1-17 5l-4-4m0 7v-7h7"/><path class="portal-sync-check" d="m11 16 3 3 7-7"/></svg></span>
+      <div class="portal-sync-copy"><span>Sincronização das planilhas</span><strong id="portalSyncState" role="status" aria-live="polite">Aguardando consulta</strong><p id="portalSyncDetail">Abra um sistema para consultar a planilha vinculada.</p><small id="portalSyncTime">Ainda sem leitura confirmada neste aparelho.</small></div>
+      <button type="button" id="portalSyncNow" onclick="syncPortalSheets()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8a8 8 0 0 0-14-3L3 8m0-5v5h5M4 16a8 8 0 0 0 14 3l3-3m0 5v-5h-5"/></svg><span id="portalSyncButtonLabel">Abrir planilhas</span></button>
+    </section>
     <section id="portalHome" aria-label="Sistemas disponíveis">
       <div class="portal-stats"><div><svg class="metric-badge" viewBox="0 0 24 24" data-motion-icon="bars" aria-hidden="true" focusable="false"><path d="M3 21h19"/><rect class="motion-bar bar-a" x="4" y="11" width="4" height="8" rx="1"/><rect class="motion-bar bar-b" x="10" y="4" width="4" height="15" rx="1"/><rect class="motion-bar bar-c" x="16" y="8" width="4" height="11" rx="1"/></svg><span>Sistemas disponíveis</span><strong>8</strong><small>Uma central para a operação</small></div><div><svg class="metric-badge" viewBox="0 0 24 24" data-motion-icon="records" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="19" rx="2"/><path class="motion-record-line line-a" d="M8 8h8"/><path class="motion-record-line line-b" d="M8 13h8"/><path class="motion-record-line line-c" d="M8 18h5"/></svg><span>Origem das informações</span><strong>Planilhas + app</strong><small>Dados de cada sistema</small></div><div><svg class="metric-badge" viewBox="0 0 24 24" data-motion-icon="network" aria-hidden="true" focusable="false"><path class="motion-network-flow" d="M12 8v4M5.5 16v-4h13v4"/><rect x="8" y="2" width="8" height="6" rx="2"/><rect x="2" y="16" width="7" height="6" rx="2"/><rect x="15" y="16" width="7" height="6" rx="2"/><circle class="motion-node node-a" cx="5.5" cy="19" r="1"/><circle class="motion-node node-b" cx="18.5" cy="19" r="1"/></svg><span>Acesso aos sistemas</span><strong>Direto</strong><small>Escolha uma opção abaixo</small></div></div>
       <div class="systems-heading"><div><span class="section-eyebrow">CENTRAL DE OPERAÇÕES</span><h2>O que você deseja consultar?</h2><p>Abra um sistema para acompanhar seus indicadores, gráficos e relatórios.</p></div><span id="systemSearchStatus" role="status">7 sistemas disponíveis</span></div>
@@ -59,7 +64,7 @@
     <p id="appUpdateStatus" role="status" aria-live="polite"></p>
     <div class="app-update-actions"><button type="button" id="appUpdateNow" onclick="applyAppUpdate()">Atualizar agora</button><button type="button" id="appUpdateLater" onclick="dismissAppUpdate()">Depois</button></div>
   </aside>
-  <script src="app-updates.js?v=20261123-sheet-sync-51"></script>
-  <script src="portal.js?v=20261123-sheet-sync-51"></script>
+  <script src="app-updates.js?v=20261123-sync-status-52"></script>
+  <script src="portal.js?v=20261123-sync-status-52"></script>
 </body>
 </html>
