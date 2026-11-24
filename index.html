@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="portal.css?v=20261124-web-push-62">
+  <link rel="stylesheet" href="portal.css?v=20261124-push-fix-63">
 </head>
 <body>
   <aside class="portal-sidebar">
@@ -74,12 +74,12 @@
     <p id="dataNoticeHelp">Receba avisos de mudanças em Vazão, Manutenção, Adubação, Roçadeira e Transplantio. Com o app aberto, a consulta ocorre a cada 2 minutos. Ative também os avisos externos abaixo para receber com o app fechado.</p>
     <div class="data-notice-actions"><button id="dataNoticeEnable" type="button">Ativar notificações</button><button id="dataNoticeLater" type="button">Agora não</button><button id="dataNoticeDisable" type="button" hidden>Desativar avisos</button><button id="dataNoticeCheck" type="button" hidden>Verificar agora</button></div>
     <p id="dataNoticeStatus" role="status" aria-live="polite">A primeira consulta cria a referência, sem avisos de dados antigos.</p>
-    <section class="push-device-panel"><strong>Notificações fora do app</strong><p id="pushDeviceStatus" role="status">Ative neste aparelho para receber na barra de notificações, mesmo com o app fechado.</p><div class="data-notice-actions"><button id="pushDeviceEnable" type="button">Ativar fora do app</button><button id="pushDeviceTest" type="button" hidden>Enviar notificação de teste</button></div></section>
+    <section class="push-device-panel"><strong>Notificações fora do app</strong><p id="pushDeviceStatus" role="status">Ative neste aparelho para receber na barra de notificações, mesmo com o app fechado.</p><div class="data-notice-actions"><button id="pushDeviceEnable" type="button">Ativar fora do app</button></div></section>
     <h3>Atualizações detectadas hoje</h3><p id="dataNoticeEmpty">Nenhuma alteração detectada hoje neste aparelho.</p><ul id="dataNoticeList"></ul><small>A data indica quando o app percebeu a mudança; a planilha publicada não informa o horário da edição.</small>
   </aside>
-  <script src="push-notifications.js?v=20261124-web-push-62"></script>
-  <script src="data-notifications.js?v=20261124-web-push-62"></script>
-  <script src="app-updates.js?v=20261124-web-push-62"></script>
-  <script src="portal.js?v=20261124-web-push-62"></script>
+  <script src="push-notifications.js?v=20261124-push-fix-63"></script>
+  <script src="data-notifications.js?v=20261124-push-fix-63"></script>
+  <script src="app-updates.js?v=20261124-push-fix-63"></script>
+  <script src="portal.js?v=20261124-push-fix-63"></script>
 </body>
 </html>
