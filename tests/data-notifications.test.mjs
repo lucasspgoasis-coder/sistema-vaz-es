@@ -41,3 +41,12 @@ test('Erros preservam referência, negar avisos do aparelho mantém o aviso inte
  a.get('dataNoticeDisable').click();const requests=a.requests;await a.w.DataNotifications.check(true);assert.equal(a.requests,requests);assert.equal(a.stored().enabled,false);
  }finally{a.dom.window.close();}
 });
+test('Cadastro confirmado no app mostra valores imediatamente e não repete quando chega na planilha',async()=>{
+ const a=app();try{
+ a.csv('Data,Poço,Hora,Vazão (L/H)\n24/11/2026,poço 01,09:00:00,1800');await a.w.DataNotifications.enable();
+ const notice={id:'vazao:coleta-2',route:'vazao',headers:['Data','Poço','Hora','Vazão (L/H)'],row:['24/11/2026','Poço 02','10:00:00',2200]};
+ a.w.DataNotifications.recordSaved(notice);a.w.DataNotifications.recordSaved(notice);assert.equal(a.stored().events.length,1);assert.match(a.get('dataNoticeToastContent').textContent,/confirmado na planilha/);assert.match(a.get('dataNoticeToastContent').textContent,/Poço 02/);
+ a.csv('Data,Poço,Hora,Vazão (L/H)\n24/11/2026,poço 01,09:00:00,1800\n24/11/2026,poço 02,10:00:00,2200\n24/11/2026,poço 03,11:00:00,2400');await a.w.DataNotifications.check(true);
+ assert.equal(a.stored().events.length,2);assert.equal(a.stored().events.at(-1).total,1);assert.equal(a.stored().events.at(-1).rows[0][1],'poço 03');assert.equal(a.stored().echoes.length,0);
+ }finally{a.dom.window.close();}
+});

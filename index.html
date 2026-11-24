@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="portal.css?v=20261124-notice-details-60">
+  <link rel="stylesheet" href="portal.css?v=20261124-app-record-notice-61">
 </head>
 <body>
   <aside class="portal-sidebar">
@@ -65,19 +65,19 @@
     <div class="app-update-actions"><button type="button" id="appUpdateNow" onclick="applyAppUpdate()">Atualizar agora</button><button type="button" id="appUpdateLater" onclick="dismissAppUpdate()">Depois</button></div>
   </aside>
   <aside id="dataNoticeToast" class="data-notice-toast" aria-labelledby="dataNoticeToastTitle" hidden>
-    <div class="data-notice-toast-heading"><strong id="dataNoticeToastTitle">Novos dados nas planilhas</strong><button id="dataNoticeToastClose" type="button" aria-label="Fechar resumo dos dados">×</button></div>
+    <div class="data-notice-toast-heading"><strong id="dataNoticeToastTitle">Novos dados no sistema</strong><button id="dataNoticeToastClose" type="button" aria-label="Fechar resumo dos dados">×</button></div>
     <p role="status">Confira os dados adicionados ou alterados:</p><div id="dataNoticeToastContent"></div>
   </aside>
   <aside id="dataNoticePanel" class="data-notice-panel" aria-labelledby="dataNoticeTitle" hidden>
-    <div class="data-notice-heading"><span class="data-notice-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><g class="data-bell-body"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5Z"/><path d="M10 21h4M12 2v2"/></g><path class="data-bell-waves" d="M3 7 2 11m19-4 1 4"/></svg></span><div><small>PLANILHAS CONECTADAS</small><h2 id="dataNoticeTitle">Central de notificações</h2></div><button id="dataNoticeClose" type="button" aria-label="Fechar notificações">×</button></div>
+    <div class="data-notice-heading"><span class="data-notice-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><g class="data-bell-body"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5Z"/><path d="M10 21h4M12 2v2"/></g><path class="data-bell-waves" d="M3 7 2 11m19-4 1 4"/></svg></span><div><small>PLANILHAS E CADASTROS</small><h2 id="dataNoticeTitle">Central de notificações</h2></div><button id="dataNoticeClose" type="button" aria-label="Fechar notificações">×</button></div>
     <strong id="dataNoticePreference">Deseja ativar os avisos das planilhas?</strong>
     <p id="dataNoticeHelp">Receba avisos de mudanças em Vazão, Manutenção, Adubação, Roçadeira e Transplantio. Verificamos a cada 2 minutos com o app aberto e ao retornar. Não há envio com o app fechado.</p>
     <div class="data-notice-actions"><button id="dataNoticeEnable" type="button">Ativar notificações</button><button id="dataNoticeLater" type="button">Agora não</button><button id="dataNoticeDisable" type="button" hidden>Desativar avisos</button><button id="dataNoticeCheck" type="button" hidden>Verificar agora</button></div>
     <p id="dataNoticeStatus" role="status" aria-live="polite">A primeira consulta cria a referência, sem avisos de dados antigos.</p>
     <h3>Atualizações detectadas hoje</h3><p id="dataNoticeEmpty">Nenhuma alteração detectada hoje neste aparelho.</p><ul id="dataNoticeList"></ul><small>A data indica quando o app percebeu a mudança; a planilha publicada não informa o horário da edição.</small>
   </aside>
-  <script src="data-notifications.js?v=20261124-notice-details-60"></script>
-  <script src="app-updates.js?v=20261124-notice-details-60"></script>
-  <script src="portal.js?v=20261124-notice-details-60"></script>
+  <script src="data-notifications.js?v=20261124-app-record-notice-61"></script>
+  <script src="app-updates.js?v=20261124-app-record-notice-61"></script>
+  <script src="portal.js?v=20261124-app-record-notice-61"></script>
 </body>
 </html>
