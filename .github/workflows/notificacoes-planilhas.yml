@@ -1,0 +1,25 @@
+name: Notificações das planilhas
+on:
+  schedule:
+    - cron: '3-58/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/notificacoes-planilhas.yml'
+permissions:
+  contents: read
+concurrency:
+  group: notificacoes-planilhas
+  cancel-in-progress: false
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Conferir dados e enviar avisos autorizados
+        run: >-
+          curl --fail-with-body --silent --show-error --max-time 180
+          --retry 3 --retry-delay 20 --retry-all-errors
+          --request POST
+          https://oasis-vazao-cadastros-20261114.snappylace5.chatgpt.site/api/push/check
