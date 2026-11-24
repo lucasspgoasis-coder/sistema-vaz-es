@@ -22,14 +22,14 @@ function renderPortalRoute(){
  for(const link of document.querySelectorAll('[data-nav]')){if(link.dataset.nav===route)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
  for(const [key,frame] of portalFrames)frame.hidden=key!==route;
  if(home){document.getElementById('workspaceLoading').hidden=true;updatePortalRecent();return;}
- const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261124-loss-refined-57';
+ const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261124-area-shared-58';
  portalWrite('oasis.portal.lastSystem',route);
  let frame=portalFrames.get(route);
  if(!frame){
   frame=document.createElement('iframe');frame.className='system-frame';frame.title='Sistema de '+system.name;frame.setAttribute('aria-label','Sistema de '+system.name);frame.dataset.loaded='false';
   frame.onload=()=>{frame.dataset.loaded='true';portalObserveFrame(frame);renderPortalSyncStatus();if(activePortalSystem===route){document.getElementById('workspaceLoading').hidden=true;portalResizeFrame(frame);}};
   frame.onerror=()=>{if(activePortalSystem===route)portalText('workspaceLoadingText','Não foi possível abrir o sistema. Use Atualizar sistema ou Abrir em nova guia.');};
-  frame.src=system.url+'?portal=20261124-loss-refined-57';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
+  frame.src=system.url+'?portal=20261124-area-shared-58';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
  }
  frame.hidden=false;document.getElementById('workspaceLoading').hidden=frame.dataset.loaded==='true';portalText('workspaceLoadingText','Abrindo '+system.name+'…');
  if(frame.dataset.loaded==='true')portalResizeFrame(frame);
@@ -37,7 +37,7 @@ function renderPortalRoute(){
 function refreshPortalSystem(){
  const frame=portalFrames.get(activePortalSystem);if(!frame)return;
  frame.dataset.loaded='false';document.getElementById('workspaceLoading').hidden=false;portalText('workspaceLoadingText','Atualizando '+PORTAL_SYSTEMS[activePortalSystem].name+'…');
- frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261124-loss-refined-57&atualizar='+Date.now();
+ frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261124-area-shared-58&atualizar='+Date.now();
 }
 function updatePortalRecent(){const last=portalRead('oasis.portal.lastSystem');const valid=Object.prototype.hasOwnProperty.call(PORTAL_SYSTEMS,last);document.getElementById('lastSystemBox').hidden=!valid;if(valid){document.getElementById('lastSystemLink').href='#'+last;portalText('lastSystemName',PORTAL_SYSTEMS[last].name);}}
 function filterPortalSystems(){const query=portalNormalize(document.getElementById('systemSearch').value.trim());let count=0;for(const card of document.querySelectorAll('[data-system-card]')){const system=PORTAL_SYSTEMS[card.dataset.systemCard];const matches=!query||portalNormalize(system.name+' '+(system.keywords||'')).includes(query);card.hidden=!matches;if(matches)count++;}document.getElementById('systemSearchEmpty').hidden=count>0;portalText('systemSearchStatus',count+' sistema'+(count===1?' disponível':'s disponíveis'));}
@@ -62,24 +62,24 @@ window.addEventListener('load',()=>{
 function portalSyncTarget(){return activePortalSystem==='inicio'?portalRead('oasis.portal.lastSystem'):activePortalSystem;}
 function renderPortalSyncStatus(){
  const panel=document.getElementById('portalSyncPanel');if(!panel)return;
- const target=portalSyncTarget(),isSheet=PORTAL_SHEET_SYSTEMS.has(target),frame=portalFrames.get(target),online=navigator.onLine!==false;
- let status=portalSheetStates.get(target);try{status=frame?.contentWindow?.AppSheetSync?.status()||status;}catch{}
- const local=target&&target!=='inicio'&&!isSheet,state=!online?'offline':local?'local':status?.state||'waiting';panel.dataset.state=state;
- const labels={synced:'Sincronizado',pending:'Sincronizando…',offline:'Sem conexão',error:'Não foi possível sincronizar',local:'Salvo neste aparelho',waiting:'Aguardando consulta'};
- portalText('portalSyncState',labels[state]||labels.waiting);
- portalText('portalSyncDetail',local?'Estes registros são locais e não fazem parte da sincronização das planilhas.':!isSheet?'Abra um sistema: computador e celular consultam a mesma planilha vinculada.':state==='synced'?PORTAL_SYSTEMS[target].name+' · leitura da planilha concluída neste aparelho.':state==='pending'?PORTAL_SYSTEMS[target].name+' · buscando os dados mais recentes da planilha.':state==='offline'?'Conecte-se à internet para consultar os dados mais recentes.':state==='error'?'Uma consulta falhou. Tente sincronizar novamente; os dados exibidos podem ser de uma leitura anterior.':PORTAL_SYSTEMS[target].name+' · aguardando a primeira leitura da planilha.');
+ const target=portalSyncTarget(),isSheet=PORTAL_SHEET_SYSTEMS.has(target),isArea=target==='area',frame=portalFrames.get(target),online=navigator.onLine!==false;
+ let status=portalSheetStates.get(target);try{status=(isArea?frame?.contentWindow?.BlockAreaShared?.status():frame?.contentWindow?.AppSheetSync?.status())||status;}catch{}
+ const local=target&&target!=='inicio'&&!isSheet&&!isArea,state=!online?'offline':local?'local':status?.state||'waiting';panel.dataset.state=state;
+ const labels={synced:'Sincronizado',pending:'Sincronizando…',offline:'Sem conexão',error:'Não foi possível sincronizar',local:'Salvo neste aparelho',waiting:'Aguardando consulta',conflict:'Medidas aguardando revisão'};
+ portalText('portalSyncState',labels[state]||labels.waiting);portalText('portalSyncScope',isArea?'Histórico compartilhado das áreas':'Sincronização das planilhas');
+ portalText('portalSyncDetail',isArea?(state==='synced'?'As medidas salvas estão disponíveis para consulta no computador e no celular.':state==='pending'?'Enviando e consultando os cadastros compartilhados dos blocos.':state==='conflict'?'Há medidas diferentes em outro aparelho. Revise as opções no cadastro do bloco.':state==='offline'?'Sem conexão. Os cadastros deste aparelho são preservados para enviar depois.':status?.error||'Consultando o histórico compartilhado das áreas.'):local?'Estes registros são locais e não fazem parte da sincronização das planilhas.':!isSheet?'Abra um sistema: computador e celular consultam a mesma planilha vinculada.':state==='synced'?PORTAL_SYSTEMS[target].name+' · leitura da planilha concluída neste aparelho.':state==='pending'?PORTAL_SYSTEMS[target].name+' · buscando os dados mais recentes da planilha.':state==='offline'?'Conecte-se à internet para consultar os dados mais recentes.':state==='error'?'Uma consulta falhou. Tente sincronizar novamente; os dados exibidos podem ser de uma leitura anterior.':PORTAL_SYSTEMS[target].name+' · aguardando a primeira leitura da planilha.');
  portalText('portalSyncTime',local?'Histórico disponível neste navegador e aparelho.':status?.lastSync?'Última leitura confirmada: '+new Date(status.lastSync).toLocaleString('pt-BR',{timeZone:'America/Fortaleza'}):'Ainda sem leitura confirmada neste aparelho.');
- const button=document.getElementById('portalSyncNow');button.hidden=Boolean(local);button.disabled=!online||state==='pending';portalText('portalSyncButtonLabel',activePortalSystem==='inicio'?'Abrir planilhas':'Sincronizar agora');
+ const button=document.getElementById('portalSyncNow');button.hidden=Boolean(local);button.disabled=!online||state==='pending';portalText('portalSyncButtonLabel',activePortalSystem==='inicio'?(isArea?'Abrir histórico':'Abrir planilhas'):'Sincronizar agora');
 }
 function syncPortalSheets(){
- if(activePortalSystem==='inicio'){location.hash=PORTAL_SHEET_SYSTEMS.has(portalSyncTarget())?portalSyncTarget():'vazao';return;}
- if(!PORTAL_SHEET_SYSTEMS.has(activePortalSystem))return;
- try{const api=portalFrames.get(activePortalSystem)?.contentWindow?.AppSheetSync;if(api){api.refresh(0);renderPortalSyncStatus();return;}}catch{}
+ if(activePortalSystem==='inicio'){location.hash=(PORTAL_SHEET_SYSTEMS.has(portalSyncTarget())||portalSyncTarget()==='area')?portalSyncTarget():'vazao';return;}
+ if(!PORTAL_SHEET_SYSTEMS.has(activePortalSystem)&&activePortalSystem!=='area')return;
+ try{const win=portalFrames.get(activePortalSystem)?.contentWindow,api=activePortalSystem==='area'?win?.BlockAreaShared:win?.AppSheetSync;if(api){if(activePortalSystem==='area')void api.sync();else api.refresh(0);renderPortalSyncStatus();return;}}catch{}
  refreshPortalSystem();renderPortalSyncStatus();
 }
 window.addEventListener('message',event=>{
- if(event.origin!==location.origin||event.data?.type!=='APP_SHEET_STATUS')return;
- const entry=[...portalFrames].find(([key,frame])=>PORTAL_SHEET_SYSTEMS.has(key)&&frame.contentWindow===event.source);if(!entry)return;
- const status=event.data.status;if(!status||!['waiting','pending','synced','error','offline'].includes(status.state))return;
+ if(event.origin!==location.origin||!['APP_SHEET_STATUS','APP_AREA_STATUS'].includes(event.data?.type))return;
+ const entry=[...portalFrames].find(([key,frame])=>(event.data.type==='APP_AREA_STATUS'?key==='area':PORTAL_SHEET_SYSTEMS.has(key))&&frame.contentWindow===event.source);if(!entry)return;
+ const status=event.data.status;if(!status||!['waiting','pending','synced','error','offline','conflict'].includes(status.state))return;
  portalSheetStates.set(entry[0],{state:status.state,lastSync:Number.isFinite(status.lastSync)?status.lastSync:0});renderPortalSyncStatus();
 });

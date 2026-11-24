@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/portal.test.mjs tests/sheet-sync.test.mjs tests/app-updates.test.mjs tests/fluid-layout.test.mjs tests/chart-motion.test.mjs tests/trend-usage.test.mjs tests/trend-report.test.mjs tests/module-access-icons.test.mjs tests/maintenance-history.test.mjs tests/loss-history.test.mjs tests/new-modules.test.mjs tests/module-dom.test.mjs tests/transplant-summary.test.mjs tests/documentary.test.mjs tests/documentary-dom.test.mjs tests/flow-registry.test.mjs tests/block-area.test.mjs"
+    "test": "node --test tests/portal.test.mjs tests/sheet-sync.test.mjs tests/app-updates.test.mjs tests/fluid-layout.test.mjs tests/chart-motion.test.mjs tests/trend-usage.test.mjs tests/trend-report.test.mjs tests/module-access-icons.test.mjs tests/maintenance-history.test.mjs tests/loss-history.test.mjs tests/new-modules.test.mjs tests/module-dom.test.mjs tests/transplant-summary.test.mjs tests/documentary.test.mjs tests/documentary-dom.test.mjs tests/flow-registry.test.mjs tests/block-area.test.mjs tests/area-shared.test.mjs"
   },
   "devDependencies": {
     "@huggingface/transformers": "3.7.2",
