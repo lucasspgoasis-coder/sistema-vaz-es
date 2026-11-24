@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="portal.css?v=20261124-area-shared-58">
+  <link rel="stylesheet" href="portal.css?v=20261124-data-notice-59">
 </head>
 <body>
   <aside class="portal-sidebar">
@@ -33,7 +33,7 @@
     <div class="sidebar-bottom"><button type="button" onclick="offerPortalInstall()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg>Instalar aplicativo</button><div class="sidebar-note"><span class="sidebar-dot"></span><div><strong>Fazenda Oasis</strong><small>Planilhas e registros locais</small></div></div></div>
   </aside>
   <main class="portal-main">
-    <header class="portal-topbar"><div><p id="portalDate" class="portal-date"></p><h1 id="portalGreeting">Painel da fazenda</h1></div><div class="topbar-tools"><button class="portal-install-shortcut" type="button" onclick="offerPortalInstall()" aria-label="Instalar aplicativo" title="Instalar aplicativo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg></button><button id="appUpdateCheck" class="app-update-check" type="button" onclick="checkAppUpdate(true)" title="Verificar atualizações"><span class="app-update-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g class="app-update-orbit"><path d="M9 20a16 16 0 0 1 27-8l4 4M40 7v9h-9M39 28a16 16 0 0 1-27 8l-4-4M8 41v-9h9"/></g><path class="app-update-arrow" d="M24 32V17m-6 6 6-6 6 6"/></svg></span><span>Atualizações</span><span id="appUpdateBadge" hidden aria-label="Nova atualização disponível"></span></button><span id="portalConnection" class="connection-pill" role="status">Conexão disponível</span><label class="portal-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="systemSearch" type="search" placeholder="Buscar sistema" aria-label="Buscar sistema" oninput="filterPortalSystems()" onkeydown="portalSearchKey(event)"><kbd>/</kbd></label></div></header>
+    <header class="portal-topbar"><div><p id="portalDate" class="portal-date"></p><h1 id="portalGreeting">Painel da fazenda</h1></div><div class="topbar-tools"><button id="dataNoticeBell" class="data-notice-bell" type="button" aria-label="Notifica??es das planilhas" aria-controls="dataNoticePanel" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="data-bell-body"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5Z"/><path d="M10 21h4M12 2v2"/></g><path class="data-bell-waves" d="M3 7 2 11m19-4 1 4"/></svg><span id="dataNoticeCount" hidden></span></button><button class="portal-install-shortcut" type="button" onclick="offerPortalInstall()" aria-label="Instalar aplicativo" title="Instalar aplicativo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></svg></button><button id="appUpdateCheck" class="app-update-check" type="button" onclick="checkAppUpdate(true)" title="Verificar atualizações"><span class="app-update-shortcut-icon" aria-hidden="true"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><g class="app-update-orbit"><path d="M9 20a16 16 0 0 1 27-8l4 4M40 7v9h-9M39 28a16 16 0 0 1-27 8l-4-4M8 41v-9h9"/></g><path class="app-update-arrow" d="M24 32V17m-6 6 6-6 6 6"/></svg></span><span>Atualizações</span><span id="appUpdateBadge" hidden aria-label="Nova atualização disponível"></span></button><span id="portalConnection" class="connection-pill" role="status">Conexão disponível</span><label class="portal-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg><input id="systemSearch" type="search" placeholder="Buscar sistema" aria-label="Buscar sistema" oninput="filterPortalSystems()" onkeydown="portalSearchKey(event)"><kbd>/</kbd></label></div></header>
     <section id="portalSyncPanel" class="portal-sync-panel" data-state="waiting" aria-label="Sincronização das planilhas">
       <span class="portal-sync-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path class="portal-sync-arrows" d="M6 13a10 10 0 0 1 17-5l4 4m0-7v7h-7M26 19a10 10 0 0 1-17 5l-4-4m0 7v-7h7"/><path class="portal-sync-check" d="m11 16 3 3 7-7"/></svg></span>
       <div class="portal-sync-copy"><span id="portalSyncScope">Sincronização das planilhas</span><strong id="portalSyncState" role="status" aria-live="polite">Aguardando consulta</strong><p id="portalSyncDetail">Abra um sistema para consultar a planilha vinculada.</p><small id="portalSyncTime">Ainda sem leitura confirmada neste aparelho.</small></div>
@@ -64,7 +64,16 @@
     <p id="appUpdateStatus" role="status" aria-live="polite"></p>
     <div class="app-update-actions"><button type="button" id="appUpdateNow" onclick="applyAppUpdate()">Atualizar agora</button><button type="button" id="appUpdateLater" onclick="dismissAppUpdate()">Depois</button></div>
   </aside>
-  <script src="app-updates.js?v=20261124-area-shared-58"></script>
-  <script src="portal.js?v=20261124-area-shared-58"></script>
+  <aside id="dataNoticePanel" class="data-notice-panel" aria-labelledby="dataNoticeTitle" hidden>
+    <div class="data-notice-heading"><span class="data-notice-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><g class="data-bell-body"><path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5Z"/><path d="M10 21h4M12 2v2"/></g><path class="data-bell-waves" d="M3 7 2 11m19-4 1 4"/></svg></span><div><small>PLANILHAS CONECTADAS</small><h2 id="dataNoticeTitle">Central de notificações</h2></div><button id="dataNoticeClose" type="button" aria-label="Fechar notificações">×</button></div>
+    <strong id="dataNoticePreference">Deseja ativar os avisos das planilhas?</strong>
+    <p id="dataNoticeHelp">Receba avisos de mudanças em Vazão, Manutenção, Adubação, Roçadeira e Transplantio. Verificamos a cada 2 minutos com o app aberto e ao retornar. Não há envio com o app fechado.</p>
+    <div class="data-notice-actions"><button id="dataNoticeEnable" type="button">Ativar notificações</button><button id="dataNoticeLater" type="button">Agora não</button><button id="dataNoticeDisable" type="button" hidden>Desativar avisos</button><button id="dataNoticeCheck" type="button" hidden>Verificar agora</button></div>
+    <p id="dataNoticeStatus" role="status" aria-live="polite">A primeira consulta cria a referência, sem avisos de dados antigos.</p>
+    <h3>Atualizações detectadas hoje</h3><p id="dataNoticeEmpty">Nenhuma alteração detectada hoje neste aparelho.</p><ul id="dataNoticeList"></ul><small>A data indica quando o app percebeu a mudança; a planilha publicada não informa o horário da edição.</small>
+  </aside>
+  <script src="data-notifications.js?v=20261124-data-notice-59"></script>
+  <script src="app-updates.js?v=20261124-data-notice-59"></script>
+  <script src="portal.js?v=20261124-data-notice-59"></script>
 </body>
 </html>
