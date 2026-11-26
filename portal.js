@@ -1,7 +1,7 @@
 const PORTAL_SYSTEMS={manutencao:{name:'Manutenção dos poços',url:'manutencao.html',keywords:'manutencao pocos bombas motor parada historico tecnico'},area:{name:'Área dos blocos',url:'area-blocos/index.html',keywords:'area blocos terreno medidas largura altura metros quadrados hectares'},rocadeira:{name:'Roçadeira',url:'sistema-rocadeira/index.html'},perdas:{name:'Contagem de Perdas',url:'sistema-perdas/index.html',keywords:'peso colhido colheita histórico'},documentario:{name:'Documentário de Perdas',url:'documentario/index.html',keywords:'fotografias fotos imagens evidências comprobatórias câmera documentação'}};
 const portalFrames=new Map(),portalSheetStates=new Map();
 const PORTAL_SHEET_SYSTEMS=new Set(['manutencao','rocadeira']);
-let activePortalSystem='inicio',portalInstallPrompt=null;
+let activePortalSystem='inicio';
 function portalRead(key,fallback=''){try{return localStorage.getItem(key)||fallback;}catch{return fallback;}}
 function portalWrite(key,value){try{localStorage.setItem(key,String(value));}catch{}}
 function portalText(id,value){document.getElementById(id).textContent=value;}
@@ -22,14 +22,14 @@ function renderPortalRoute(){
  for(const link of document.querySelectorAll('[data-nav]')){if(link.dataset.nav===route)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
  for(const [key,frame] of portalFrames)frame.hidden=key!==route;
  if(home){document.getElementById('workspaceLoading').hidden=true;updatePortalRecent();return;}
- const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261126-modules-64';
+ const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261126-browser-offline-65';
  portalWrite('oasis.portal.lastSystem',route);
  let frame=portalFrames.get(route);
  if(!frame){
   frame=document.createElement('iframe');frame.className='system-frame';frame.title='Sistema de '+system.name;frame.setAttribute('aria-label','Sistema de '+system.name);frame.dataset.loaded='false';
   frame.onload=()=>{frame.dataset.loaded='true';portalObserveFrame(frame);renderPortalSyncStatus();if(activePortalSystem===route){document.getElementById('workspaceLoading').hidden=true;portalResizeFrame(frame);}};
   frame.onerror=()=>{if(activePortalSystem===route)portalText('workspaceLoadingText','Não foi possível abrir o sistema. Use Atualizar sistema ou Abrir em nova guia.');};
-  frame.src=system.url+'?portal=20261126-modules-64';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
+  frame.src=system.url+'?portal=20261126-browser-offline-65';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
  }
  frame.hidden=false;document.getElementById('workspaceLoading').hidden=frame.dataset.loaded==='true';portalText('workspaceLoadingText','Abrindo '+system.name+'…');
  if(frame.dataset.loaded==='true')portalResizeFrame(frame);
@@ -37,25 +37,19 @@ function renderPortalRoute(){
 function refreshPortalSystem(){
  const frame=portalFrames.get(activePortalSystem);if(!frame)return;
  frame.dataset.loaded='false';document.getElementById('workspaceLoading').hidden=false;portalText('workspaceLoadingText','Atualizando '+PORTAL_SYSTEMS[activePortalSystem].name+'…');
- frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261126-modules-64&atualizar='+Date.now();
+ frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261126-browser-offline-65&atualizar='+Date.now();
 }
 function updatePortalRecent(){const last=portalRead('oasis.portal.lastSystem');const valid=Object.prototype.hasOwnProperty.call(PORTAL_SYSTEMS,last);document.getElementById('lastSystemBox').hidden=!valid;if(valid){document.getElementById('lastSystemLink').href='#'+last;portalText('lastSystemName',PORTAL_SYSTEMS[last].name);}}
 function filterPortalSystems(){const query=portalNormalize(document.getElementById('systemSearch').value.trim());let count=0;for(const card of document.querySelectorAll('[data-system-card]')){const system=PORTAL_SYSTEMS[card.dataset.systemCard];const matches=!query||portalNormalize(system.name+' '+(system.keywords||'')).includes(query);card.hidden=!matches;if(matches)count++;}document.getElementById('systemSearchEmpty').hidden=count>0;portalText('systemSearchStatus',count+' sistema'+(count===1?' disponível':'s disponíveis'));}
 function portalSearchKey(event){if(event.key!=='Enter')return;const matches=[...document.querySelectorAll('[data-system-card]')].filter(card=>!card.hidden);if(matches.length===1)location.hash=matches[0].dataset.systemCard;}
 function portalConnection(){const online=navigator.onLine!==false;const target=document.getElementById('portalConnection');target.dataset.state=online?'online':'offline';target.textContent=online?'Conexão disponível':'Sem conexão · última leitura';renderPortalSyncStatus();}
-function portalStandalone(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
-function offerPortalInstall(){if(!portalStandalone())document.getElementById('portalInstallDialog').showModal();}
-function dismissPortalInstall(){portalWrite('oasis.portal.installDismissed',Date.now());document.getElementById('portalInstallDialog').close();}
-async function installPortalApp(){if(portalInstallPrompt){await portalInstallPrompt.prompt();const result=await portalInstallPrompt.userChoice;if(result.outcome==='accepted')document.getElementById('portalInstallDialog').close();portalInstallPrompt=null;}else{portalText('portalInstallHelp',/iPhone|iPad|iPod/i.test(navigator.userAgent)?'No Safari, toque em Compartilhar e depois Adicionar à Tela de Início.':'No menu do navegador, procure Instalar app ou Adicionar à tela inicial. O nome do aplicativo é Sistema integrado.');}}
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();portalInstallPrompt=event;});
-window.addEventListener('appinstalled',()=>{document.getElementById('portalInstallDialog').close();portalWrite('oasis.portal.installDismissed',Date.now());});
+window.addEventListener('beforeinstallprompt',event=>event.preventDefault());
 window.addEventListener('hashchange',renderPortalRoute);
 window.addEventListener('online',portalConnection);window.addEventListener('offline',portalConnection);
 window.addEventListener('load',()=>{
  const now=new Date();portalText('portalDate',new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Fortaleza'}).format(now));
  const hour=Number(new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'America/Fortaleza'}).format(now));portalText('portalGreeting',hour<12?'Bom dia!':hour<18?'Boa tarde!':'Boa noite!');
  portalConnection();renderPortalRoute();updatePortalRecent();
- if(!portalStandalone()&&Date.now()-Number(portalRead('oasis.portal.installDismissed','0'))>7*86400000)setTimeout(offerPortalInstall,1600);
  document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();document.getElementById('systemSearch').focus();}});
 });
 
