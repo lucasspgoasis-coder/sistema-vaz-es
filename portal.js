@@ -1,6 +1,6 @@
-const PORTAL_SYSTEMS={manutencao:{name:'Manutenção dos poços',url:'manutencao.html',keywords:'manutencao pocos bombas motor parada historico tecnico'},area:{name:'Área dos blocos',url:'area-blocos/index.html',keywords:'area blocos terreno medidas largura altura metros quadrados hectares'},vazao:{name:'Vazão',url:'vazao.html'},adubacao:{name:'Adubação',url:'sistema-adubacao/index.html'},rocadeira:{name:'Roçadeira',url:'sistema-rocadeira/index.html'},transplantio:{name:'Transplantio',url:'sistema-transplantio/index.html',keywords:'plantio mudas germinação'},perdas:{name:'Contagem de Perdas',url:'sistema-perdas/index.html',keywords:'peso colhido colheita histórico'},documentario:{name:'Documentário de Perdas',url:'documentario/index.html',keywords:'fotografias fotos imagens evidências comprobatórias câmera documentação'}};
+const PORTAL_SYSTEMS={manutencao:{name:'Manutenção dos poços',url:'manutencao.html',keywords:'manutencao pocos bombas motor parada historico tecnico'},area:{name:'Área dos blocos',url:'area-blocos/index.html',keywords:'area blocos terreno medidas largura altura metros quadrados hectares'},rocadeira:{name:'Roçadeira',url:'sistema-rocadeira/index.html'},perdas:{name:'Contagem de Perdas',url:'sistema-perdas/index.html',keywords:'peso colhido colheita histórico'},documentario:{name:'Documentário de Perdas',url:'documentario/index.html',keywords:'fotografias fotos imagens evidências comprobatórias câmera documentação'}};
 const portalFrames=new Map(),portalSheetStates=new Map();
-const PORTAL_SHEET_SYSTEMS=new Set(['vazao','manutencao','transplantio','adubacao','rocadeira']);
+const PORTAL_SHEET_SYSTEMS=new Set(['manutencao','rocadeira']);
 let activePortalSystem='inicio',portalInstallPrompt=null;
 function portalRead(key,fallback=''){try{return localStorage.getItem(key)||fallback;}catch{return fallback;}}
 function portalWrite(key,value){try{localStorage.setItem(key,String(value));}catch{}}
@@ -22,14 +22,14 @@ function renderPortalRoute(){
  for(const link of document.querySelectorAll('[data-nav]')){if(link.dataset.nav===route)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
  for(const [key,frame] of portalFrames)frame.hidden=key!==route;
  if(home){document.getElementById('workspaceLoading').hidden=true;updatePortalRecent();return;}
- const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261124-push-fix-63';
+ const system=PORTAL_SYSTEMS[route];portalText('workspaceTitle',system.name);document.getElementById('openSystemLink').href=system.url+'?portal=20261126-modules-64';
  portalWrite('oasis.portal.lastSystem',route);
  let frame=portalFrames.get(route);
  if(!frame){
   frame=document.createElement('iframe');frame.className='system-frame';frame.title='Sistema de '+system.name;frame.setAttribute('aria-label','Sistema de '+system.name);frame.dataset.loaded='false';
   frame.onload=()=>{frame.dataset.loaded='true';portalObserveFrame(frame);renderPortalSyncStatus();if(activePortalSystem===route){document.getElementById('workspaceLoading').hidden=true;portalResizeFrame(frame);}};
   frame.onerror=()=>{if(activePortalSystem===route)portalText('workspaceLoadingText','Não foi possível abrir o sistema. Use Atualizar sistema ou Abrir em nova guia.');};
-  frame.src=system.url+'?portal=20261124-push-fix-63';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
+  frame.src=system.url+'?portal=20261126-modules-64';portalFrames.set(route,frame);document.getElementById('systemFrames').append(frame);
  }
  frame.hidden=false;document.getElementById('workspaceLoading').hidden=frame.dataset.loaded==='true';portalText('workspaceLoadingText','Abrindo '+system.name+'…');
  if(frame.dataset.loaded==='true')portalResizeFrame(frame);
@@ -37,7 +37,7 @@ function renderPortalRoute(){
 function refreshPortalSystem(){
  const frame=portalFrames.get(activePortalSystem);if(!frame)return;
  frame.dataset.loaded='false';document.getElementById('workspaceLoading').hidden=false;portalText('workspaceLoadingText','Atualizando '+PORTAL_SYSTEMS[activePortalSystem].name+'…');
- frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261124-push-fix-63&atualizar='+Date.now();
+ frame.src=PORTAL_SYSTEMS[activePortalSystem].url+'?portal=20261126-modules-64&atualizar='+Date.now();
 }
 function updatePortalRecent(){const last=portalRead('oasis.portal.lastSystem');const valid=Object.prototype.hasOwnProperty.call(PORTAL_SYSTEMS,last);document.getElementById('lastSystemBox').hidden=!valid;if(valid){document.getElementById('lastSystemLink').href='#'+last;portalText('lastSystemName',PORTAL_SYSTEMS[last].name);}}
 function filterPortalSystems(){const query=portalNormalize(document.getElementById('systemSearch').value.trim());let count=0;for(const card of document.querySelectorAll('[data-system-card]')){const system=PORTAL_SYSTEMS[card.dataset.systemCard];const matches=!query||portalNormalize(system.name+' '+(system.keywords||'')).includes(query);card.hidden=!matches;if(matches)count++;}document.getElementById('systemSearchEmpty').hidden=count>0;portalText('systemSearchStatus',count+' sistema'+(count===1?' disponível':'s disponíveis'));}
@@ -59,7 +59,7 @@ window.addEventListener('load',()=>{
  document.addEventListener('keydown',event=>{if(event.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){event.preventDefault();document.getElementById('systemSearch').focus();}});
 });
 
-function portalSyncTarget(){return activePortalSystem==='inicio'?portalRead('oasis.portal.lastSystem'):activePortalSystem;}
+function portalSyncTarget(){const target=activePortalSystem==='inicio'?portalRead('oasis.portal.lastSystem'):activePortalSystem;return Object.prototype.hasOwnProperty.call(PORTAL_SYSTEMS,target)?target:'manutencao';}
 function renderPortalSyncStatus(){
  const panel=document.getElementById('portalSyncPanel');if(!panel)return;
  const target=portalSyncTarget(),isSheet=PORTAL_SHEET_SYSTEMS.has(target),isArea=target==='area',frame=portalFrames.get(target),online=navigator.onLine!==false;
@@ -72,7 +72,7 @@ function renderPortalSyncStatus(){
  const button=document.getElementById('portalSyncNow');button.hidden=Boolean(local);button.disabled=!online||state==='pending';portalText('portalSyncButtonLabel',activePortalSystem==='inicio'?(isArea?'Abrir histórico':'Abrir planilhas'):'Sincronizar agora');
 }
 function syncPortalSheets(){
- if(activePortalSystem==='inicio'){location.hash=(PORTAL_SHEET_SYSTEMS.has(portalSyncTarget())||portalSyncTarget()==='area')?portalSyncTarget():'vazao';return;}
+ if(activePortalSystem==='inicio'){location.hash=(PORTAL_SHEET_SYSTEMS.has(portalSyncTarget())||portalSyncTarget()==='area')?portalSyncTarget():'manutencao';return;}
  if(!PORTAL_SHEET_SYSTEMS.has(activePortalSystem)&&activePortalSystem!=='area')return;
  try{const win=portalFrames.get(activePortalSystem)?.contentWindow,api=activePortalSystem==='area'?win?.BlockAreaShared:win?.AppSheetSync;if(api){if(activePortalSystem==='area')void api.sync();else api.refresh(0);renderPortalSyncStatus();return;}}catch{}
  refreshPortalSystem();renderPortalSyncStatus();
